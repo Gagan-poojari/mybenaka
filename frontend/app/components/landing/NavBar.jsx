@@ -58,10 +58,10 @@ export default function Navbar() {
             Login
           </Link>
           <Link
-            href="/signup"
+            href="/register"
             className="bg-[#ff6a00] hover:bg-[#ff9a3d] text-white font-semibold px-5 py-2 rounded-full transition"
           >
-            Sign Up
+            Register
           </Link>
         </div>
 
@@ -101,11 +101,11 @@ export default function Navbar() {
               Login
             </Link>
             <Link
-              href="/signup"
+              href="/register"
               className="bg-[#ff6a00] hover:bg-[#ff9a3d] text-white font-semibold px-5 py-2 rounded-full text-center transition"
               onClick={() => setMenuOpen(false)}
             >
-              Sign Up
+              Register
             </Link>
           </div>
         </motion.div>
