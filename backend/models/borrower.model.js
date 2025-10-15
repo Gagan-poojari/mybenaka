@@ -9,11 +9,26 @@ const borrowerSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  alternatePhone: String,
-  guardianName: String,
-  relationship: String,
-  permanentAddress: String,
-  temporaryAddress: String,
+  alternatePhone: {
+    type: String,
+    required: true
+  },
+  guardianName: {
+    type: String,
+    required: true
+  },
+  relationship: {
+    type: String,
+    required: true
+  },
+  permanentAddress: {
+    type: String,
+    required: true
+  },
+  temporaryAddress: {
+    type: String,
+    required: true
+  },
   addedBy: { 
     type: mongoose.Schema.Types.ObjectId, 
     refPath: "addedByRole" 

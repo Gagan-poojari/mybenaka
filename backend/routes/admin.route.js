@@ -18,6 +18,12 @@ import {
   getRevenueReport,
   getActivityLogs
 } from "../controllers/admin.controller.js";
+import { getManagerBorrowers, 
+  getManagerBorrowersById, 
+  getManagerCollections, 
+  getManagerIssuedLoans, 
+  getManagerOverdueLoans 
+} from "../controllers/manager.controller.js";
 
 const adminRouter = express.Router();
 
@@ -36,6 +42,13 @@ adminRouter.get("/managers/:id", getManagerById);
 adminRouter.put("/managers/:id", updateManager);
 adminRouter.delete("/managers/:id", deleteManager);
 adminRouter.get("/managers/:id/portfolio", getManagerPortfolio);
+
+
+adminRouter.get("/my/borrowers", getManagerBorrowers);
+adminRouter.get("/my/borrowers/:id", getManagerBorrowersById);
+adminRouter.get("/my/loans", getManagerIssuedLoans);
+adminRouter.get("/my/overdue", getManagerOverdueLoans);
+adminRouter.get("/my/collections", getManagerCollections);
 
 // System Dashboard
 adminRouter.get("/dashboard", getDashboardStats);

@@ -6,9 +6,9 @@ import dotenv from "dotenv";
 // Routes
 import authRouter from "./routes/auth.route.js";
 import adminRouter from "./routes/admin.route.js";
-// import managerRouter from "./routes/manager.route.js";
+import managerRouter from "./routes/manager.route.js";
+import loanRouter from "./routes/loan.route.js";
 // import repaymentRouter from "./routes/repayment.route.js";
-// import loanRouter from "./routes/loan.route.js";
 
 // Utils 
 import { seedAdmin } from "./utils/seedAdmin.js";
@@ -33,8 +33,8 @@ app.use((req, res, next) => {
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
-// app.use("/api/manager", managerRouter);
-// app.use("/api", loanRouter); // Shared routes (borrowers & loans)
+app.use("/api/manager", managerRouter);
+app.use("/api", loanRouter); // Shared routes (borrowers & loans)
 // app.use("/api/payments", repaymentRouter); // Payment routes
 
 // Health check route

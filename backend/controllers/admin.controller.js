@@ -5,8 +5,6 @@ import Borrower from "../models/borrower.model.js";
 import Loan from "../models/loan.model.js";
 import Repayment from "../models/repayment.model.js";
 
-// ============ PROFILE MANAGEMENT ============
-
 export const getAdminProfile = async (req, res) => {
   try {
     const admin = await Admin.findById(req.user.id)
@@ -72,8 +70,6 @@ export const changeAdminPassword = async (req, res) => {
     res.status(500).json({ message: "Error changing password", error: error.message });
   }
 };
-
-// ============ MANAGER MANAGEMENT ============
 
 export const createManager = async (req, res) => {
   try {
@@ -265,8 +261,6 @@ export const getManagerPortfolio = async (req, res) => {
   }
 };
 
-// ============ SYSTEM-WIDE DASHBOARD ============
-
 export const getDashboardStats = async (req, res) => {
   try {
     const totalManagers = await Manager.countDocuments();
@@ -339,8 +333,6 @@ export const getAllSystemBorrowers = async (req, res) => {
     res.status(500).json({ message: "Error fetching borrowers", error: error.message });
   }
 };
-
-// ============ REPORTS ============
 
 export const getOverdueLoans = async (req, res) => {
   try {

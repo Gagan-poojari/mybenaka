@@ -14,7 +14,16 @@ const loanSchema = new mongoose.Schema({
     type: String,
     enum: ["Admin", "Manager"]
   },
-  amount: Number,
+  amount: {
+    type: Number,
+    required: true
+  },
+  currentBalance: {
+    type: Number,
+    default: function () {
+      return this.amount; 
+    },
+  },
   interestRate: Number,
   startDate: Date,
   dueDate: Date,
@@ -26,6 +35,12 @@ const loanSchema = new mongoose.Schema({
   payments: [{
     date: Date,
     amount: Number,
+    currentBalance: {
+      type: Number,
+      default: function () {
+        return this.amount; 
+      },
+    },
     receivedBy: { type: mongoose.Schema.Types.ObjectId, refPath: "receivedByRole" },
     receivedByRole: { type: String, enum: ["Admin", "Manager"] },
   }],

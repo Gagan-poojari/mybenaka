@@ -61,3 +61,8 @@ Things to consider later (optional but useful):
     Scheduled automatic interest calculation.
     Partial payments and interest recalculation.
     Loan history / archives.
+
+
+TODO: 
+CHECK REPAYMENT CONTROLLER'S RECORD PAYMENT
+DATE STORAGE ERROR

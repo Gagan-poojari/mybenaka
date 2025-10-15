@@ -3,6 +3,12 @@ import Loan from "../models/loan.model.js";
 import Admin from "../models/admin.model.js";
 import Manager from "../models/manager.model.js";
 
+const parseDate = (dateStr) => {
+  const [day, month, year] = dateStr.split("-");
+  return new Date(Date.UTC(year, month - 1, day)); // month is 0-based
+};
+
+
 // ============ BORROWER MANAGEMENT ============
 
 export const addBorrower = async (req, res) => {
@@ -155,13 +161,13 @@ export const deleteBorrower = async (req, res) => {
     }
 
     // Check if borrower has active loans
-    const activeLoans = await Loan.find({ 
-      borrower: req.params.id, 
+    const activeLoans = await Loan.find({
+      borrower: req.params.id,
       status: { $in: ["active", "overdue"] }
     });
 
     if (activeLoans.length > 0) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: "Cannot delete borrower with active/overdue loans",
         activeLoansCount: activeLoans.length
       });
@@ -191,6 +197,39 @@ export const deleteBorrower = async (req, res) => {
   }
 };
 
+export const deleteLoan = async (req, res) => {
+  try {
+    const loan = await Loan.findById(req.params.id);
+
+    if (!loan) {
+      return res.status(404).json({ message: "Loan not found" });
+    }
+
+    await Loan.findByIdAndDelete(req.params.id);
+
+    // Remove from user's borrowers array
+    const Model = req.user.role === "Admin" ? Admin : Manager;
+    await Model.findByIdAndUpdate(req.user.id, {
+      $pull: { loans: req.params.id }
+    });
+
+    // Log activity
+    await Model.findByIdAndUpdate(req.user.id, {
+      $push: {
+        activityLogs: {
+          action: "DELETE_LOAN",
+          details: `Deleted loan: ${loan.name}`
+        }
+      }
+    });
+
+    res.status(200).json({ message: "Loan deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting loan", error: error.message });
+  }
+};
+
+
 // ============ LOAN OPERATIONS ============
 
 export const issueLoan = async (req, res) => {
@@ -214,8 +253,8 @@ export const issueLoan = async (req, res) => {
       issuedByRole: req.user.role,
       amount,
       interestRate,
-      startDate: new Date(startDate),
-      dueDate: new Date(dueDate),
+      startDate: parseDate(startDate),
+      dueDate: parseDate(dueDate),
       status: "active"
     });
 
@@ -304,20 +343,23 @@ export const recordPayment = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
+    // Calculate total paid
+    const totalPaid = loan.payments.reduce((sum, p) => sum + p.amount, 0) + amount; 
+    const totalDue = loan.amount + (loan.amount * loan.interestRate / 100);
+    const currentBalance = totalDue - totalPaid;
+    
     // Add payment to loan
+
     loan.payments.push({
       date: new Date(date),
       amount,
+      currentBalance,
       receivedBy: req.user.id,
       receivedByRole: req.user.role
     });
 
-    // Calculate total paid
-    const totalPaid = loan.payments.reduce((sum, p) => sum + p.amount, 0);
-    const totalDue = loan.amount + (loan.amount * loan.interestRate / 100);
-
     // Update loan status
-    if (totalPaid >= totalDue) {
+    if (currentBalance <= 0) {
       loan.status = "closed";
     } else if (loan.status === "overdue" && new Date() <= loan.dueDate) {
       loan.status = "active";
@@ -341,6 +383,7 @@ export const recordPayment = async (req, res) => {
       .populate("issuedBy", "name email");
 
     res.status(200).json({ message: "Payment recorded successfully", loan: updatedLoan });
+
   } catch (error) {
     res.status(500).json({ message: "Error recording payment", error: error.message });
   }
@@ -422,9 +465,9 @@ export const getMyPortfolioStats = async (req, res) => {
 
 export const getMyOverdueLoans = async (req, res) => {
   try {
-    const overdueLoans = await Loan.find({ 
-      issuedBy: req.user.id, 
-      status: "overdue" 
+    const overdueLoans = await Loan.find({
+      issuedBy: req.user.id,
+      status: "overdue"
     })
       .populate("borrower", "name phone")
       .sort({ dueDate: 1 });
