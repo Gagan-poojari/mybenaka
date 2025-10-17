@@ -377,12 +377,18 @@ export const recordPayment = async (req, res) => {
     // Log activity
     const Model = req.user.role === "Admin" ? Admin : Manager;
     await Log.create({
-      type: "Activity",
+      type: "Collection",          
       action: "RECORD_PAYMENT",
-      details: `Recorded payment of ₹${amount} (Loan ID: ${loanId})`,
-      ownerType: req.user.role,
-      ownerId: req.user.id
-    })
+      amount,                        
+      loan: loanId,                  
+      borrower: loan.borrower,       
+      receivedBy: req.user.id,       
+      receivedByRole: req.user.role, 
+      ownerType: req.user.role,      
+      ownerId: req.user.id,
+
+      details: `Recorded payment of ₹${amount} for ${loan.borrower.name} (Loan ID: ${loanId})`
+    });
 
     const updatedLoan = await Loan.findById(loanId)
       .populate("borrower", "name phone")
@@ -415,8 +421,39 @@ export const getPaymentRecords = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error fetching payment records", error: error.message });
   }
-  
+
 }
+
+export const getLast24hrPayments = async (req, res) => {
+  try {
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const query = {
+      type: "Collection",
+      action: "RECORD_PAYMENT",
+      createdAt: { $gte: yesterday, $lte: now }
+    };
+
+    if (req.user.role === "Manager") {
+      query.receivedBy = req.user.id;
+    }
+
+    const payments = await Log.find(query)
+      .populate("loan", "amount status")
+      .populate("borrower", "name phone")
+      .populate("receivedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(payments);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching payments", error: error.message });
+  }
+};
+
+
+
 
 export const updateLoan = async (req, res) => {
   try {

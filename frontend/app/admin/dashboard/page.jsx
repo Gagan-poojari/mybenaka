@@ -23,6 +23,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
+import { set } from "react-hook-form";
 
 const defaultOverview = {
   totalLoaned: 0,
@@ -37,6 +38,7 @@ const defaultOverview = {
 
 const AdminDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
+  const [last24hrsPaymentData, setLast24hrsPaymentData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -97,13 +99,66 @@ const AdminDashboard = () => {
     }
   }, []);
 
-  const fetchTodaysReports = useCallback(async () => {
-    
-  })
-  
+  const fetch24hrPayments = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:8000/api/loans/payments/24hrs", {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        throw new Error(json?.message || `Failed to fetch payments: ${res.status}`);
+      }
+
+      const data = await res.json(); // this is an array of payments
+      console.log("Raw 24hr payments:", data);
+
+      // --- OPTIONAL: Aggregate / transform data for your dashboard ---
+      const totalCollected = data.reduce((sum, p) => sum + (p.amount || 0), 0);
+      const paymentsByUser = {};
+      data.forEach((p) => {
+        const id = p.receivedBy?._id;
+        const name = p.receivedBy?.name || "Unknown";
+        if (id) {
+          if (!paymentsByUser[id]) paymentsByUser[id] = { name, amount: 0, count: 0 };
+          paymentsByUser[id].amount += p.amount || 0;
+          paymentsByUser[id].count += 1;
+        }
+      });
+
+      const normalized = {
+        raw: data,
+        totalCollected,
+        paymentsByUser,
+        paymentCount: data.length,
+      };
+
+      console.log("Normalized 24hr payments:", normalized);
+      setLast24hrsPaymentData(normalized);
+      console.log("24hr payments data (last24hrsPaymentData):", last24hrsPaymentData);
+      setLoading(false);
+    } catch (err) {
+      console.error("24hr payments data fetch error:", err);
+      setError(err.message || "Unknown error");
+      setLoading(false);
+    }
+  }, []);
+
+
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
+
+  useEffect(() => {
+    fetch24hrPayments();
+  }, [fetch24hrPayments]);
 
   const formatCurrency = (amount) => {
     const safe = Number(amount || 0);
@@ -112,6 +167,14 @@ const AdminDashboard = () => {
       currency: "INR",
       maximumFractionDigits: 0,
     }).format(safe);
+  };
+
+  const formatDate = (date) => {
+    return new Intl.DateTimeFormat("en-IN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(new Date(date));
   };
 
   // Small helper to safely parse a percent-like value
@@ -141,7 +204,11 @@ const AdminDashboard = () => {
           <p className="text-gray-600 mb-4">{error}</p>
           <div className="flex gap-3 justify-center">
             <button
-              onClick={fetchDashboardData}
+              onClick={() => {
+                fetchDashboardData();
+                fetch24hrPayments();
+              }
+              }
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Retry
@@ -151,6 +218,7 @@ const AdminDashboard = () => {
                 // quick helpful action: clear token and retry if token is the problem
                 localStorage.removeItem("token");
                 fetchDashboardData();
+                fetch24hrPayments();
               }}
               className="px-6 py-2 border rounded-lg"
             >
@@ -170,9 +238,6 @@ const AdminDashboard = () => {
     overview,
     loanStatusDistribution,
     monthlyTrends,
-    topPerformers,
-    paymentMethodStats,
-    overdueAlerts,
   } = dashboardData;
 
   const pieData = [
@@ -181,14 +246,10 @@ const AdminDashboard = () => {
     { name: "Closed", value: Number(loanStatusDistribution.closed || 0), color: "#6B7280" },
   ];
 
-  console.log("Dashboard data:", dashboardData);
-  console.log("pieData:", pieData);
-
-  const paymentMethodData = Object.entries(paymentMethodStats || {}).map(([method, d]) => ({
-    name: method.replace(/_/g, " ").toUpperCase(),
-    amount: Number(d?.amount || 0),
-    count: Number(d?.count || 0),
-  }));
+  const loanComparison = [
+  { name: "Total Loaned", value: overview.totalLoaned },
+  { name: "Total Repaid", value: overview.totalRepaid },
+];
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -207,7 +268,10 @@ const AdminDashboard = () => {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={fetchDashboardData}
+              onClick={() => {
+                fetchDashboardData();
+                fetch24hrPayments();
+              }}
               className="px-4 py-2 border rounded hover:bg-gray-100 transition-colors"
             >
               Refresh
@@ -290,8 +354,59 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* 24hrs payments dashboard */}
+        <div className="bg-white rounded-xl shadow p-6 border-t-4 border-orange-500">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Payments (Last 24 hrs)
+          </h3>
+
+          {last24hrsPaymentData.raw && last24hrsPaymentData.raw.length > 0 ? (
+            last24hrsPaymentData.raw.map((payment) => (
+              <div
+                key={payment._id}
+                className="bg-white rounded-xl shadow p-6 border-l-4 border-green-500 mb-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Amount Collected</p>
+                    <p className="text-2xl font-bold text-green-600 mt-1">
+                      {formatCurrency(payment.amount)}
+                    </p>
+                  </div>
+                  <div className="bg-green-100 p-3 rounded-lg">
+                    <IndianRupee className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+
+                <div className="mt-4 text-sm text-gray-700 space-y-1">
+                  <p>
+                    <span className="font-semibold">Borrower:</span>{" "}
+                    {payment.borrower?.name || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Collected By:</span>{" "}
+                    {payment.receivedBy?.name || "N/A"} ({payment.receivedByRole || "N/A"})
+                  </p>
+                  <p>
+                    <span className="font-semibold">Loan ID:</span>{" "}
+                    {payment.loan?.id || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Time:</span>{" "}
+                    {formatDate(payment.timestamp)}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500 text-center py-8">
+              No payments recorded in the last 24 hours
+            </p>
+          )}
+        </div>
+
         {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 my-8">
           {/* Loan Status Pie Chart */}
           <div className="bg-white rounded-xl shadow p-6 h-[500px] border-t-4 border-orange-500">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -319,133 +434,31 @@ const AdminDashboard = () => {
             </ResponsiveContainer>
           </div>
 
-          {/* Monthly Trends */}
+          {/* Money Flow Trends */}
           <div className="bg-white rounded-xl shadow p-6 border-t-4 border-orange-500">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Monthly Trends
+              Money Flow Trends
             </h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={monthlyTrends}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
+              <PieChart>
+                <Pie
+                  data={loanComparison}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  dataKey="value"
+                >
+                  <Cell fill="#3B82F6" />
+                  <Cell fill="#10B981" />
+                </Pie>
                 <Tooltip formatter={(value) => formatCurrency(value)} />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="amountLoaned"
-                  stroke="#3B82F6"
-                  name="Loaned"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="amountCollected"
-                  stroke="#10B981"
-                  name="Collected"
-                  strokeWidth={2}
-                />
-              </LineChart>
+              </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Top Performers */}
-        <div className="bg-white rounded-xl shadow p-6 border-t-4 border-orange-500">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Top Performing Managers
-          </h3>
-          {topPerformers.length > 0 ? (
-            <div className="space-y-4">
-              {topPerformers.map((manager, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-semibold">
-                      {idx + 1}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{manager.name}</p>
-                      <p className="text-sm text-gray-600">
-                        {formatCurrency(manager.totalCollected)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${parsePercent(manager.collectionRate) >= 80
-                          ? "bg-green-100 text-green-800"
-                          : parsePercent(manager.collectionRate) >= 60
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                    >
-                      {parsePercent(manager.collectionRate)}%
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-8">No managers yet</p>
-          )}
-        </div>
-
-        {/* Overdue Alerts */}
-        <div className="bg-white rounded-xl shadow p-6 border-t-4 border-red-500">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <AlertTriangle className="w-5 h-5 text-red-600 mr-2" />
-            Overdue Alerts
-          </h3>
-          {overdueAlerts.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                      Borrower
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                      Amount
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                      Days Overdue
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                      Manager
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {overdueAlerts.map((alert, idx) => (
-                    <tr key={idx} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4 text-sm text-gray-900">{alert.borrowerName}</td>
-                      <td className="py-3 px-4 text-sm font-semibold text-gray-900">{formatCurrency(alert.amount)}</td>
-                      <td className="py-3 px-4">
-                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-semibold">
-                          {alert.daysOverdue} days
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">{alert.issuedBy}</td>
-                      <td className="py-3 px-4">
-                        <button className="text-blue-600 hover:text-blue-800 text-sm font-semibold">
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-8">No overdue loans</p>
-          )}
-        </div>
       </div>
     </div>
   );
