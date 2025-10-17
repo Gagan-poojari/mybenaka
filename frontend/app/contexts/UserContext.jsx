@@ -19,6 +19,7 @@ const UserContext = ({ children }) => {
             } else {
                 setUserData(null)
             }
+            console.log(result.data);
         } catch (error) {
             console.log("Error getting user data:", error.response?.data || error);
             setUserData(null)

@@ -26,14 +26,6 @@ const managerSchema = new mongoose.Schema({
     loanIssued: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Loan"
-    }],
-    activityLogs: [{
-        action: String,
-        timestamp: {
-            type: Date,
-            default: Date.now
-        },
-        details: String
     }]
 }, {
     timestamps: true

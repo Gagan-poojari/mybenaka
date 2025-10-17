@@ -14,6 +14,7 @@ import {
   getMyPortfolioStats, 
   getMyOverdueLoans,
   deleteLoan,
+  getPaymentRecords,
 //   getLoanHistory,
 //   addLoanNote,
 //   applyLateFee,
@@ -42,6 +43,7 @@ loanRouter.delete("/loans/:id", isAdmin, deleteLoan);
 
 // Payment Routes
 loanRouter.post("/loans/:id/payments", recordPayment); // id identifies the loan
+loanRouter.get("/loans/:id/payments", getPaymentRecords);
 
 // Loan Stats
 loanRouter.get("/stats", getMyPortfolioStats);

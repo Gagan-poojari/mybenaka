@@ -2,7 +2,6 @@ import bcrypt from "bcryptjs";
 import Manager from "../models/manager.model.js";
 import Borrower from "../models/borrower.model.js";
 import Loan from "../models/loan.model.js";
-import Repayment from "../models/repayment.model.js";
 
 export const getManagerProfile = async (req, res) => {
     try {
@@ -28,7 +27,7 @@ export const getManagerPortfolioStats = async(req, res) => {
         .populate("borrower", "name phone");
 
         const borrowers = await Borrower.find({ addedBy: req.user.id });
-        const repayments = await Repayment.find({ receivedBy: req.user.id }); 
+        // const repayments = await Repayment.find({ receivedBy: req.user.id }); 
 
         // calculate stats
         const totalLoans = loans.length
@@ -37,20 +36,20 @@ export const getManagerPortfolioStats = async(req, res) => {
         const closedLoans = loans.filter(l => l.status === "closed").length;
 
         const totalLoaned = loans.reduce((sum, loan) => sum + (loan.amount || 0), 0)
-        const totalRepaid = repayments.reduce((sum, payment) => sum + payment.amount, 0)
+        // const totalRepaid = repayments.reduce((sum, payment) => sum + payment.amount, 0)
     
         // this month's collection calculations:
         const currentMonth = new Date().getMonth()
         const currentYear = new Date().getFullYear()
-        const thisMonthsCollections = repayments.filter(r => {
-            const paymentDate = new Date(r.date)
-            return paymentDate.getMonth() === currentMonth && paymentDate.getFullYear() === currentYear;
-        }).reduce((sum, payment) => sum + payment.amount, 0)
+        // const thisMonthsCollections = repayments.filter(r => {
+        //     const paymentDate = new Date(r.date)
+        //     return paymentDate.getMonth() === currentMonth && paymentDate.getFullYear() === currentYear;
+        // }).reduce((sum, payment) => sum + payment.amount, 0)
 
         // recent activities
         const recentLoans = loans.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5)
 
-        const recentPayments = repayments.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
+        // const recentPayments = repayments.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
 
         res.status(200).json({
             summary: {
@@ -60,14 +59,14 @@ export const getManagerPortfolioStats = async(req, res) => {
                 overdueLoans,
                 closedLoans,
                 totalLoaned,
-                totalRepaid,
-                outstanding: totalLoaned - totalRepaid,
-                thisMonthsCollections,
-                collectionRate: totalLoaned > 0 ? ((totalRepaid / totalLoaned) * 100).toFixed(2) : 0
+                // totalRepaid,
+                // outstanding: totalLoaned - totalRepaid,
+                // thisMonthsCollections,
+                // collectionRate: totalLoaned > 0 ? ((totalRepaid / totalLoaned) * 100).toFixed(2) : 0
             },
             recentActivity: {
                 recentLoans,
-                recentPayments
+                // recentPayments
             }
         })
     
@@ -83,7 +82,7 @@ export const getManagerOverdueLoans = async (req, res) => {
             status: "overdue"
         })
         .populate("borrower", "name phone permanentAddress alternatePhone")
-        .populate("repayments")
+        // .populate("repayments")
         .sort({ dueDate: 1})
 
         // add days overdue to each loan
@@ -157,7 +156,7 @@ export const getManagerBorrowersById = async (req, res) => {
         })
         .populate({
             path: "loans",
-            populate: { path: "repayments" }
+            // populate: { path: "repayments" }
         })
 
         if (!borrower) {
@@ -167,9 +166,9 @@ export const getManagerBorrowersById = async (req, res) => {
         // calc borrower stats
         const totalLoans = borrower.loans.length
         const totalBorrowed = borrower.loans.reduce((sum, loan) => sum + loan.amount, 0)
-        const totalRepaid = borrower.loans.reduce((sum, loan) => {
-            return sum + (loan.repayments?.reduce((pSum, p) => pSum + p.amount, 0) || 0)
-        }, 0)
+        // const totalRepaid = borrower.loans.reduce((sum, loan) => {
+        //      return sum + (loan.repayments?.reduce((pSum, p) => pSum + p.amount, 0) || 0)
+        // }, 0)
         const activeLoans = borrower.loans.filter(l => l.status === "active").length;
         const overdueLoans = borrower.loans.filter(l => l.status === "overdue").length;
         const closedLoans = borrower.loans.filter(l => l.status === "closed").length;
@@ -209,7 +208,7 @@ export const getManagerIssuedLoans = async (req, res) => {
 
         const loans = await Loan.find(query)
             .populate("borrower", "name phone")
-            .populate("repayments")
+            // .populate("repayments")
             .sort({ createdAt: -1 })
 
         res.status(200).json({
@@ -229,10 +228,10 @@ export const getManagerIssuedLoansById = async (req, res) => {
             issuedBy: req.user.id
         })
         .populate("borrower", "name phone")
-        .populate({
-            path: "repayments",
-            populate: { path: "receivedBy", select: "name email" }
-        })
+        // .populate({
+        //     path: "repayments",
+        //     populate: { path: "receivedBy", select: "name email" }
+        // })
         .populate("issuedBy", "name email")
 
         if (!loan) {
@@ -243,68 +242,5 @@ export const getManagerIssuedLoansById = async (req, res) => {
 
     } catch (error) {
         res.status(500).json({ message: "Error fetching loan", error: error.message });
-    }
-}
-
-export const getManagerCollections = async (req, res) => {
-    try {
-        const { startDate, endDate, status } = req.query
-        let query = { receivedBy: req.user.id }
-        
-        if (status) query.status = status
-
-        if (startDate && endDate) {
-            query.createdAt = {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate)
-            }
-        }
-        
-        const payments = await Repayment.find(query)
-        .populate("loan", "amount status")
-        .populate("borrower", "name phone")
-        .sort({ date: -1 })
-
-        const totalCollected = payments.reduce((sum, payment) => sum + payment.amount, 0)
-
-        const byMethod = {}
-        payments.forEach(p => {
-            const method = "cash"
-            if (!byMethod[method]) {
-                byMethod[method] = {amount: 0, count: 0}
-            }
-            byMethod[method].amount += p.amount
-            byMethod[method].count += 1
-        })
-
-        res.status(200).json({
-            totalCollected,
-            paymentCount: payments.length,
-            byMethod,
-            payments
-        })
-
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching manager collections", error: error.message });
-    }
-}
-
-export const getManagerActivityLogs = async(req, res) => {
-    try {
-        const { limit = 50 } = req.query
-
-        const manager = await Manager.findById(req.user.id).select("activityLogs")
-        if (!manager) {
-            return res.status(404).json({ message: "Manager not found" });
-        }
-
-        const logs = manager.activityLogs
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, parseInt(limit))
-        
-        res.status(200).json(logs)
-
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching activity logs", error: error.message });
     }
 }

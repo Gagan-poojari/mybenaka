@@ -8,7 +8,7 @@ import authRouter from "./routes/auth.route.js";
 import adminRouter from "./routes/admin.route.js";
 import managerRouter from "./routes/manager.route.js";
 import loanRouter from "./routes/loan.route.js";
-// import repaymentRouter from "./routes/repayment.route.js";
+import logsRouter from "./routes/log.route.js";
 
 // Utils 
 import { seedAdmin } from "./utils/seedAdmin.js";
@@ -20,7 +20,11 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3001" || "http://localhost:3000",
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -34,8 +38,8 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/manager", managerRouter);
-app.use("/api", loanRouter); // Shared routes (borrowers & loans)
-// app.use("/api/payments", repaymentRouter); // Payment routes
+app.use("/api", loanRouter); 
+app.use("/api/logs", logsRouter); 
 
 // Health check route
 app.get("/", (req, res) => {

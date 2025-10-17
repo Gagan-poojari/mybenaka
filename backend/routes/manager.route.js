@@ -1,9 +1,8 @@
 import express from "express";
 import { isAuth, isManager } from "../middlewares/authorize.js";
-import { getManagerActivityLogs, 
+import {
   getManagerBorrowers, 
   getManagerBorrowersById, 
-  getManagerCollections, 
   getManagerIssuedLoans, 
   getManagerIssuedLoansById, 
   getManagerOverdueLoans, 
@@ -23,11 +22,8 @@ managerRouter.get("/overdue-loans", getManagerOverdueLoans)
 managerRouter.get("/borrowers", getManagerBorrowers)
 managerRouter.get("/borrowers/:id", getManagerBorrowersById)
 
-// managerRouter.get("/loans", getManagerIssuedLoans)
-// managerRouter.get("/loans/:id", getManagerIssuedLoansById)
+managerRouter.get("/loans", getManagerIssuedLoans)
+managerRouter.get("/loans/:id", getManagerIssuedLoansById)
 
-managerRouter.get("/loan-collections", getManagerCollections)
-
-managerRouter.get("/activity-logs", getManagerActivityLogs)
 
 export default managerRouter;

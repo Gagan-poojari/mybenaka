@@ -20,10 +20,9 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (userData) {
-      if (userData.role === "main-admin") router.push("/dashboard/admin");
-      else if (userData.role === "partial-admin")
-        router.push("/dashboard/partial-admin");
-      else router.push("/dashboard/user");
+      if (userData.role === "Admin") router.push("/admin/dashboard");
+      if (userData.role === "Manager") router.push("/manager/dashboard");
+      // else router.push("/dashboard/user");
     }
   }, [userData, router]);
 
@@ -47,12 +46,13 @@ const LoginPage = () => {
       setUserData(userData);
 
       localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', res.data.token);
 
       const role = userData.role;
 
-      if (role === "admin") router.push("/dashboard/admin");
-      else if (role === "manager") router.push("/dashboard/manager");
-      else router.push("/dashboard/user");
+      if (role === "Admin") router.push("/admin/dashboard");
+      if (role === "Manager") router.push("/manager/dashboard");
+      // else router.push("/dashboard/user");
     } catch (err) {
       setError(err.response?.data?.message || "Invalid credentials");
       setDisableLogin(false);
@@ -110,9 +110,9 @@ const LoginPage = () => {
         </form>
 
         <p className="text-sm mt-4 text-center">
-          Don’t have an account?{" "}
-          <Link href="/register" className="text-orange-600 hover:underline">
-            Register
+          Facing issues while logging in?{" "}
+          <Link href="/contact" className="text-orange-600 hover:underline">
+            Contact
           </Link>
         </p>
       </div>

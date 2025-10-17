@@ -2,6 +2,7 @@ import Borrower from "../models/borrower.model.js";
 import Loan from "../models/loan.model.js";
 import Admin from "../models/admin.model.js";
 import Manager from "../models/manager.model.js";
+import Log from "../models/log.model.js";
 
 const parseDate = (dateStr) => {
   const [day, month, year] = dateStr.split("-");
@@ -42,13 +43,12 @@ export const addBorrower = async (req, res) => {
     });
 
     // Log activity
-    await Model.findByIdAndUpdate(req.user.id, {
-      $push: {
-        activityLogs: {
-          action: "ADD_BORROWER",
-          details: `Added borrower: ${name} (${phone})`
-        }
-      }
+    await Log.create({
+      type: "Activity",
+      action: "ADD_BORROWER",
+      details: `Added borrower: ${name} (${phone})`,
+      ownerType: req.user.role,
+      ownerId: req.user.id
     });
 
     res.status(201).json({ message: "Borrower added successfully", borrower });
@@ -197,37 +197,6 @@ export const deleteBorrower = async (req, res) => {
   }
 };
 
-export const deleteLoan = async (req, res) => {
-  try {
-    const loan = await Loan.findById(req.params.id);
-
-    if (!loan) {
-      return res.status(404).json({ message: "Loan not found" });
-    }
-
-    await Loan.findByIdAndDelete(req.params.id);
-
-    // Remove from user's borrowers array
-    const Model = req.user.role === "Admin" ? Admin : Manager;
-    await Model.findByIdAndUpdate(req.user.id, {
-      $pull: { loans: req.params.id }
-    });
-
-    // Log activity
-    await Model.findByIdAndUpdate(req.user.id, {
-      $push: {
-        activityLogs: {
-          action: "DELETE_LOAN",
-          details: `Deleted loan: ${loan.name}`
-        }
-      }
-    });
-
-    res.status(200).json({ message: "Loan deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting loan", error: error.message });
-  }
-};
 
 
 // ============ LOAN OPERATIONS ============
@@ -247,7 +216,7 @@ export const issueLoan = async (req, res) => {
       return res.status(403).json({ message: "You can only issue loans to your own borrowers" });
     }
 
-    const loan = await Loan.create({
+    const loan = await Log.create({
       borrower: borrowerId,
       issuedBy: req.user.id,
       issuedByRole: req.user.role,
@@ -270,25 +239,55 @@ export const issueLoan = async (req, res) => {
     });
 
     // Log activity
-    await Model.findByIdAndUpdate(req.user.id, {
-      $push: {
-        activityLogs: {
-          action: "ISSUE_LOAN",
-          details: `Issued loan of ₹${amount} to ${borrower.name}`
-        }
-      }
-    });
+    await Log.create({
+      type: "Activity",
+      action: "ISSUE_LOAN",
+      details: `Issued loan of ₹${loan.amount} to ${borrower.name} (Loan ID: ${loan._id})`,
+      ownerType: req.user.role,
+      ownerId: req.user.id
+    })
 
     const populatedLoan = await Loan.findById(loan._id)
       .populate("borrower", "name phone")
       .populate("issuedBy", "name email");
 
     res.status(201).json({ message: "Loan issued successfully", loan: populatedLoan });
+
   } catch (error) {
     res.status(500).json({ message: "Error issuing loan", error: error.message });
   }
 };
 
+export const deleteLoan = async (req, res) => {
+  try {
+    const loan = await Loan.findById(req.params.id);
+
+    if (!loan) {
+      return res.status(404).json({ message: "Loan not found" });
+    }
+
+    await Loan.findByIdAndDelete(req.params.id);
+
+    // Remove from user's borrowers array
+    const Model = req.user.role === "Admin" ? Admin : Manager;
+    await Model.findByIdAndUpdate(req.user.id, {
+      $pull: { loans: req.params.id }
+    });
+
+    // Log activity
+    await Log.create({
+      type: "Activity",
+      action: "DELETE_LOAN",
+      details: `Deleted loan of ₹${loan.amount} (Loan ID: ${loan._id})`,
+      ownerType: req.user.role,
+      ownerId: req.user.id
+    });
+
+    res.status(200).json({ message: "Loan deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting loan", error: error.message });
+  }
+};
 export const getMyLoans = async (req, res) => {
   try {
     const { status } = req.query;
@@ -300,7 +299,10 @@ export const getMyLoans = async (req, res) => {
       .populate("borrower", "name phone")
       .sort({ createdAt: -1 });
 
-    res.status(200).json(loans);
+    res.status(200).json({
+      count: loans.length,
+      loans
+    });
   } catch (error) {
     res.status(500).json({ message: "Error fetching loans", error: error.message });
   }
@@ -338,16 +340,21 @@ export const recordPayment = async (req, res) => {
       return res.status(404).json({ message: "Loan not found" });
     }
 
+    if (loan.currentBalance <= 0) {
+      return res.status(400).json({ message: "Loan is already fully paid" });
+    }
+
     // Check if user has access to this loan
     if (req.user.role === "Manager" && loan.issuedBy.toString() !== req.user.id) {
       return res.status(403).json({ message: "Access denied" });
     }
 
     // Calculate total paid
-    const totalPaid = loan.payments.reduce((sum, p) => sum + p.amount, 0) + amount; 
+    const totalPaid = loan.payments.reduce((sum, p) => sum + p.amount, 0) + amount;
     const totalDue = loan.amount + (loan.amount * loan.interestRate / 100);
     const currentBalance = totalDue - totalPaid;
-    
+    loan.amountPaid = totalPaid;
+
     // Add payment to loan
 
     loan.payments.push({
@@ -369,14 +376,13 @@ export const recordPayment = async (req, res) => {
 
     // Log activity
     const Model = req.user.role === "Admin" ? Admin : Manager;
-    await Model.findByIdAndUpdate(req.user.id, {
-      $push: {
-        activityLogs: {
-          action: "RECORD_PAYMENT",
-          details: `Recorded payment of ₹${amount} for ${loan.borrower.name}`
-        }
-      }
-    });
+    await Log.create({
+      type: "Activity",
+      action: "RECORD_PAYMENT",
+      details: `Recorded payment of ₹${amount} (Loan ID: ${loanId})`,
+      ownerType: req.user.role,
+      ownerId: req.user.id
+    })
 
     const updatedLoan = await Loan.findById(loanId)
       .populate("borrower", "name phone")
@@ -388,6 +394,29 @@ export const recordPayment = async (req, res) => {
     res.status(500).json({ message: "Error recording payment", error: error.message });
   }
 };
+
+export const getPaymentRecords = async (req, res) => {
+  try {
+    const loan = await Loan.findById(req.params.id)
+      .populate("borrower", "name phone")
+      .populate("issuedBy", "name email")
+      .populate("payments.receivedBy", "name email");
+
+    if (!loan) {
+      return res.status(404).json({ message: "Loan not found" });
+    }
+
+    // Check if user has access to this loan
+    if (req.user.role === "Manager" && loan.issuedBy._id.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    res.status(200).json(loan.payments);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching payment records", error: error.message });
+  }
+  
+}
 
 export const updateLoan = async (req, res) => {
   try {
@@ -412,14 +441,13 @@ export const updateLoan = async (req, res) => {
 
     // Log activity
     const Model = req.user.role === "Admin" ? Admin : Manager;
-    await Model.findByIdAndUpdate(req.user.id, {
-      $push: {
-        activityLogs: {
-          action: "UPDATE_LOAN",
-          details: `Updated loan for ${updatedLoan.borrower.name}`
-        }
-      }
-    });
+    await Log.create({
+      type: "Activity",
+      action: "UPDATE_LOAN",
+      details: `Updated loan (Loan ID: ${req.params.id})`,
+      ownerType: req.user.role,
+      ownerId: req.user.id
+    })
 
     res.status(200).json({ message: "Loan updated successfully", loan: updatedLoan });
   } catch (error) {
