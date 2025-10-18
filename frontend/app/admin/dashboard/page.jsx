@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   PieChart,
   Pie,
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
 import { set } from "react-hook-form";
+import { authDataContext } from "@/app/contexts/AuthContext";
 
 const defaultOverview = {
   totalLoaned: 0,
@@ -37,6 +38,9 @@ const defaultOverview = {
 };
 
 const AdminDashboard = () => {
+  const { serverUrl } = useContext(authDataContext)
+  console.log(serverUrl);
+  
   const [dashboardData, setDashboardData] = useState(null);
   const [last24hrsPaymentData, setLast24hrsPaymentData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -50,7 +54,7 @@ const AdminDashboard = () => {
     try {
       // adjust this URL to your backend (relative path works with proxy)
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/admin/dashboard", {
+      const res = await fetch(`${serverUrl}/api/admin/dashboard`, {
         headers: {
           // ensure token is a string (don't store an object in localStorage)
           Authorization: token ? `Bearer ${token}` : undefined,
@@ -105,7 +109,7 @@ const AdminDashboard = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/loans/payments/24hrs", {
+      const res = await fetch(`${serverUrl}/api/loans/payments/24hrs`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : undefined,
           "Content-Type": "application/json",

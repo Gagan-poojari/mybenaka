@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   CreditCard,
   User,
@@ -18,8 +18,11 @@ import {
   TrendingUp,
 } from "lucide-react";
 import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
+import { authDataContext } from "@/app/contexts/AuthContext";
 
 const IssueLoan = () => {
+  const { serverUrl } = useContext(authDataContext)
+
   const [borrowers, setBorrowers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
@@ -51,7 +54,7 @@ const IssueLoan = () => {
   const fetchBorrowers = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/borrowers", {
+      const res = await fetch(`${serverUrl}/api/borrowers`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : undefined,
           "Content-Type": "application/json",
@@ -160,7 +163,7 @@ const IssueLoan = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/loans", {
+      const res = await fetch(`${serverUrl}/api/loans`, {
         method: "POST",
         headers: {
           Authorization: token ? `Bearer ${token}` : undefined,

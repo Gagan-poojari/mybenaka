@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   Users,
   IndianRupee,
@@ -19,8 +19,11 @@ import {
 } from "lucide-react";
 import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
 import Link from "next/link";
+import { authDataContext } from "@/app/contexts/AuthContext";
 
 const AdminManagers = () => {
+  const { serverUrl } = useContext(authDataContext)
+
   const [managersData, setManagersData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,7 +37,7 @@ const AdminManagers = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/admin/managers", {
+      const res = await fetch(`${serverUrl}/api/admin/managers`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : undefined,
           "Content-Type": "application/json",

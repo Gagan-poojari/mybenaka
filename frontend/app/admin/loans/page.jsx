@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   CreditCard,
   Search,
@@ -22,8 +22,11 @@ import {
 } from "lucide-react";
 import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
 import Link from "next/link";
+import { authDataContext } from "@/app/contexts/AuthContext";
 
 const AdminLoans = () => {
+  const { serverUrl } = useContext(authDataContext)
+  
   const [loansData, setLoansData] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -39,7 +42,7 @@ const AdminLoans = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/loans", {
+      const res = await fetch(`${serverUrl}/api/loans`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : undefined,
           "Content-Type": "application/json",
@@ -308,7 +311,7 @@ const AdminLoans = () => {
         {/* Issue a new loan link cum button */}
 
         <div className="flex w-full justify-center mb-6">
-          <Link href="/admin/issueloan">
+          <Link href="/admin/loans/issueloan">
             <button className="bg-gradient-to-r from-orange-400 to-orange-500 hover:transform hover:scale-105 text-white font-semibold py-2 px-6 rounded-lg cursor-pointer transition duration-300 ease-in-out">
               Issue a new loan
             </button>

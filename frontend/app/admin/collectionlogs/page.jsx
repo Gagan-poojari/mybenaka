@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   DollarSign,
   Search,
@@ -19,8 +19,11 @@ import {
   AlertCircle,
 } from "lucide-react";
 import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
+import { authDataContext } from "@/app/contexts/AuthContext";
 
 const CollectionLogs = () => {
+  const { serverUrl } = useContext(authDataContext)
+
   const [logsData, setLogsData] = useState([]);
   const [totalCollected, setTotalCollected] = useState(0);
   const [pagination, setPagination] = useState({});
@@ -37,7 +40,7 @@ const CollectionLogs = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/logs/collection/all", {
+      const res = await fetch(`${serverUrl}/api/logs/collection/all`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : undefined,
           "Content-Type": "application/json",

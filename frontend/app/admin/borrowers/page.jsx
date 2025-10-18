@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   Users,
   Search,
@@ -22,8 +22,10 @@ import {
 } from "lucide-react";
 import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
 import Link from "next/link";
+import { authDataContext } from "@/app/contexts/AuthContext";
 
 const AdminBorrowers = () => {
+    const { serverUrl } = useContext(authDataContext);
   const [borrowersData, setBorrowersData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,7 +39,7 @@ const AdminBorrowers = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/borrowers", {
+      const res = await fetch(`${serverUrl}/api/borrowers`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : undefined,
           "Content-Type": "application/json",
