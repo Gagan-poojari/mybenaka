@@ -21,7 +21,8 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: "http://localhost:3001" || "http://localhost:3000",
+  // origin: "http://localhost:3001" || "http://localhost:3000",
+  origin: "https://mybenaka-frontend.onrender.com",
   credentials: true
 }));
 
@@ -81,8 +82,10 @@ mongoose
     // Start server
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📍 API available at http://localhost:${PORT}/api`);
-      console.log(`👑 Admin email: ${process.env.ADMIN_EMAIL}`);
+      // console.log(`📍 API available at http://localhost:${PORT}/api`);
+      // console.log(`📍 API available at https://mybenaka.onrender.com/api`);
+      // console.log(`👤 Manager email: ${process.env.MANAGER_EMAIL}`);
+      // console.log(`👑 Admin email: ${process.env.ADMIN_EMAIL}`);
     });
   })
   .catch((err) => {
