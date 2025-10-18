@@ -22,7 +22,7 @@ const app = express();
 // Middleware
 app.use(cors({
   // origin: "http://localhost:3001" || "http://localhost:3000",
-  origin: "https://mybenaka-frontend.onrender.com",
+  origin: "https://mybenaka-frontend.onrender.com/",
   credentials: true
 }));
 
