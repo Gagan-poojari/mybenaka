@@ -4,7 +4,7 @@ import React, { createContext } from 'react'
 export const authDataContext = createContext();
 
 const AuthContext = ({ children }) => {
-    const serverUrl = "https://mybenaka-backend.onrender.com/";
+    const serverUrl = "https://mybenaka-backend.onrender.com";
     const values = {
         serverUrl
     }
