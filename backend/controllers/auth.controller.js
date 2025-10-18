@@ -1,4 +1,3 @@
-// controllers/authController.js
 import bcrypt from "bcryptjs";
 import Admin from "../models/admin.model.js";
 import Manager from "../models/manager.model.js";

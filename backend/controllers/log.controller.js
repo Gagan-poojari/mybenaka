@@ -1,4 +1,3 @@
-// controllers/logs.controller.js
 import Log from "../models/log.model.js";
 import Loan from "../models/loan.model.js";
 import Borrower from "../models/borrower.model.js";

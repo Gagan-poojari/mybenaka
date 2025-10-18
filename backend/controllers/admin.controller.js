@@ -232,27 +232,20 @@ export const getManagerPortfolio = async (req, res) => {
     const loans = await Loan.find({ issuedBy: req.params.id })
       .populate("borrower", "name phone");
 
-    const repayments = await Repayment.find({
-      loan: { $in: loans.map(l => l._id) }
+    const repayments = await Log.find({
+      type: "Collection",
+      ownerType: "Manager",
+      ownerId: req.params.id
     });
 
-    const totalLoaned = loans.reduce((sum, loan) => sum + (loan.amount || 0), 0);
-    const totalRepaid = repayments.reduce((sum, payment) => sum + payment.amount, 0);
-
-    const activeLoans = loans.filter(l => l.status === "active").length;
-    const overdueLoans = loans.filter(l => l.status === "overdue").length;
-    const closedLoans = loans.filter(l => l.status === "closed").length;
-
-    res.status(200).json({
-      totalLoans: loans.length,
-      activeLoans,
-      overdueLoans,
-      closedLoans,
-      totalLoaned,
-      totalRepaid,
-      outstanding: totalLoaned - totalRepaid,
-      loans
+    const activities = await Log.find({
+      type: "Activity",
+      ownerType: "Manager",
+      ownerId: req.params.id
     });
+
+    res.status(200).json({ loans, repayments, activities });
+    
   } catch (error) {
     res.status(500).json({ message: "Error fetching portfolio", error: error.message });
   }

@@ -216,7 +216,7 @@ export const issueLoan = async (req, res) => {
       return res.status(403).json({ message: "You can only issue loans to your own borrowers" });
     }
 
-    const loan = await Log.create({
+    const loan = await Loan.create({
       borrower: borrowerId,
       issuedBy: req.user.id,
       issuedByRole: req.user.role,
@@ -255,6 +255,42 @@ export const issueLoan = async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ message: "Error issuing loan", error: error.message });
+  }
+};
+export const updateLoan = async (req, res) => {
+  try {
+    const loan = await Loan.findById(req.params.id);
+
+    if (!loan) {
+      return res.status(404).json({ message: "Loan not found" });
+    }
+
+    // Check if user has access to this loan
+    if (req.user.role === "Manager" && loan.issuedBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const { amount, interestRate, dueDate, status } = req.body;
+
+    const updatedLoan = await Loan.findByIdAndUpdate(
+      req.params.id,
+      { amount, interestRate, dueDate, status },
+      { new: true, runValidators: true }
+    ).populate("borrower", "name phone");
+
+    // Log activity
+    const Model = req.user.role === "Admin" ? Admin : Manager;
+    await Log.create({
+      type: "Activity",
+      action: "UPDATE_LOAN",
+      details: `Updated loan (Loan ID: ${req.params.id})`,
+      ownerType: req.user.role,
+      ownerId: req.user.id
+    })
+
+    res.status(200).json({ message: "Loan updated successfully", loan: updatedLoan });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating loan", error: error.message });
   }
 };
 
@@ -452,45 +488,6 @@ export const getLast24hrPayments = async (req, res) => {
   }
 };
 
-
-
-
-export const updateLoan = async (req, res) => {
-  try {
-    const loan = await Loan.findById(req.params.id);
-
-    if (!loan) {
-      return res.status(404).json({ message: "Loan not found" });
-    }
-
-    // Check if user has access to this loan
-    if (req.user.role === "Manager" && loan.issuedBy.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
-    const { amount, interestRate, dueDate, status } = req.body;
-
-    const updatedLoan = await Loan.findByIdAndUpdate(
-      req.params.id,
-      { amount, interestRate, dueDate, status },
-      { new: true, runValidators: true }
-    ).populate("borrower", "name phone");
-
-    // Log activity
-    const Model = req.user.role === "Admin" ? Admin : Manager;
-    await Log.create({
-      type: "Activity",
-      action: "UPDATE_LOAN",
-      details: `Updated loan (Loan ID: ${req.params.id})`,
-      ownerType: req.user.role,
-      ownerId: req.user.id
-    })
-
-    res.status(200).json({ message: "Loan updated successfully", loan: updatedLoan });
-  } catch (error) {
-    res.status(500).json({ message: "Error updating loan", error: error.message });
-  }
-};
 
 // ============ PORTFOLIO & REPORTS ============
 

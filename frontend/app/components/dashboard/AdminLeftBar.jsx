@@ -9,25 +9,44 @@ import {
     Users,
     FileText,
     ChartPie,
+    IndianRupee,
     Settings,
     Bell,
     CreditCard,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 
 const navItems = [
     { key: "dashboard", label: "Dashboard", icon: Home },
     { key: "managers", label: "Managers", icon: Users },
     { key: "borrowers", label: "Borrowers", icon: FileText },
-    { key: "loans", label: "Loans", icon: CreditCard },
-    { key: "reports", label: "Reports", icon: ChartPie },
+    { key: "loans", label: "My Loans", icon: CreditCard },
+    { key: "collectionlogs", label: "Collection Logs", icon: IndianRupee },
+    { key: "activitylogs", label: "Activity Logs", icon: ChartPie },
     { key: "settings", label: "Settings", icon: Settings },
 ];
 
-export default function AdminLeftbar({ active = "dashboard", onNavigate }) {
+const AdminLeftbar = () => {
+    const pathname = usePathname()
+
     const [open, setOpen] = useState(true); // desktop expanded state
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+
+    // Map routes to nav keys
+    const getActiveKey = () => {
+        if (pathname === '/admin' || pathname === '/admin/dashboard') return 'dashboard';
+        if (pathname.startsWith('/admin/managers')) return 'managers';
+        if (pathname.startsWith('/admin/borrowers')) return 'borrowers';
+        if (pathname.startsWith('/admin/loans')) return 'loans';
+        if (pathname.startsWith('/admin/collectionlogs')) return 'collectionlogs';
+        if (pathname.startsWith('/admin/activitylogs')) return 'activitylogs';
+        if (pathname.startsWith('/admin/settings')) return 'settings';
+        return 'dashboard';
+    };
+    const active = getActiveKey();
 
     useEffect(() => {
         const handleResize = () => {
@@ -94,37 +113,39 @@ export default function AdminLeftbar({ active = "dashboard", onNavigate }) {
                     </div>
 
                     {/* Nav */}
-                    <div className="mt-4 flex-1 overflow-auto">
-                        <motion.nav variants={container} initial="hidden" animate="show" className="px-2 py-4 flex flex-col gap-1">
+                    <div className="flex-1 overflow-auto">
+                        <motion.nav variants={container} initial="hidden" animate="show" className="p-2 flex flex-col gap-1">
                             {navItems.map((n) => {
                                 const Icon = n.icon;
                                 const activeItem = n.key === active;
                                 return (
-                                    <motion.button
-                                        key={n.key}
-                                        variants={item}
-                                        onClick={() => onNavigate?.(n.key)}
-                                        className={`group w-full flex items-center gap-3 text-left rounded-lg p-2 hover:bg-orange-50 transition-colors duration-150 focus:outline-none cursor-pointer ${activeItem ? "bg-orange-50" : ""
-                                            }`}
-                                    >
-                                        <div
-                                            className={`flex items-center justify-center w-10 h-10 rounded-lg shadow-sm ring-1 ring-slate-100 ${activeItem ? "bg-orange-100" : "bg-white"
+                                    <Link key={n.key} href={`/admin/${n.key}`} className="group w-full flex items-center gap-3 text-left rounded-lg hover:bg-orange-50 transition-colors duration-150 focus:outline-none cursor-pointer">
+                                        <motion.button
+                                            key={n.key}
+                                            variants={item}
+                                            // onClick={() => onNavigate?.(n.key)}
+                                            className={`group w-full flex items-center gap-3 text-left rounded-lg px-2 py-3 hover:bg-orange-50 transition-colors duration-150 focus:outline-none cursor-pointer ${activeItem ? "bg-orange-50" : ""
                                                 }`}
                                         >
-                                            <Icon className={`w-5 h-5 ${activeItem ? "text-orange-600" : "text-slate-600"}`} />
-                                        </div>
-
-                                        {open && (
-                                            <div className="flex-1">
-                                                <div className={`font-medium ${activeItem ? "text-slate-900" : "text-slate-700"}`}>{formatLabel(n.label)}</div>
-                                                <div className="text-xs text-slate-400">{n.key === "loans" ? "Manage loans & terms" : ""}</div>
+                                            <div
+                                                className={`flex items-center justify-center w-10 h-10 rounded-lg shadow-sm ring-1 ring-slate-100 ${activeItem ? "bg-orange-100" : "bg-white"
+                                                    }`}
+                                            >
+                                                <Icon className={`w-5 h-5 ${activeItem ? "text-orange-600" : "text-slate-600"}`} />
                                             </div>
-                                        )}
 
-                                        <div className="ml-auto">
-                                            {activeItem && <div className="w-3 h-3 rounded-full bg-orange-400 shadow-md" />}
-                                        </div>
-                                    </motion.button>
+                                            {open && (
+                                                <div className="flex-1">
+                                                    <div className={`font-medium ${activeItem ? "text-slate-900" : "text-slate-700"}`}>{formatLabel(n.label)}</div>
+                                                    <div className="text-xs text-slate-400">{n.key === "loans" ? "Manage loans & terms" : ""}</div>
+                                                </div>
+                                            )}
+
+                                            <div className="ml-auto">
+                                                {activeItem && <div className="w-3 h-3 rounded-full bg-orange-400 shadow-md" />}
+                                            </div>
+                                        </motion.button>
+                                    </Link>
                                 );
                             })}
                         </motion.nav>
@@ -180,19 +201,20 @@ export default function AdminLeftbar({ active = "dashboard", onNavigate }) {
                                     </button>
                                 </div>
 
-                                <div className="mt-4 flex-1 overflow-auto">
-                                    <nav className="px-2 py-4 flex flex-col gap-1">
+                                <div className="flex-1 overflow-auto">
+                                    <nav className="px-2 flex flex-col gap-1">
                                         {navItems.map((n) => {
                                             const Icon = n.icon;
                                             const activeItem = n.key === active;
                                             return (
+                                                <Link key={n.key} href={`/admin/${n.key}`} className="w-full flex items-center gap-3 text-left rounded-lg p-3 hover:bg-orange-50 transition-colors duration-150">
                                                 <button
                                                     key={n.key}
                                                     onClick={() => {
-                                                        onNavigate?.(n.key);
+                                                        // onNavigate?.(n.key);
                                                         setMobileOpen(false);
                                                     }}
-                                                    className={`w-full flex items-center gap-3 text-left rounded-lg p-3 hover:bg-orange-50 transition-colors duration-150 ${activeItem ? "bg-orange-50" : ""
+                                                    className={`w-full flex items-center gap-3 text-left rounded-lg px-2 py-1 hover:bg-orange-50 transition-colors duration-150 ${activeItem ? "bg-orange-50" : ""
                                                         }`}
                                                 >
                                                     <div
@@ -205,6 +227,7 @@ export default function AdminLeftbar({ active = "dashboard", onNavigate }) {
                                                         <div className="text-xs text-slate-400">{n.key === "loans" ? "Manage loans & terms" : ""}</div>
                                                     </div>
                                                 </button>
+                                                </Link>
                                             );
                                         })}
                                     </nav>
@@ -231,3 +254,5 @@ export default function AdminLeftbar({ active = "dashboard", onNavigate }) {
         </>
     );
 }
+
+export default AdminLeftbar

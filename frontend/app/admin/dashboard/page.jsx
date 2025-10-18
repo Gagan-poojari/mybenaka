@@ -249,6 +249,7 @@ const AdminDashboard = () => {
   const loanComparison = [
   { name: "Total Loaned", value: overview.totalLoaned },
   { name: "Total Repaid", value: overview.totalRepaid },
+  { name: "Outstanding", value: overview.outstanding },
 ];
 
   return (
@@ -331,7 +332,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              {parsePercent(overview.outstanding ? overview.totalRepaid / overview.outstanding : 0)}% collection rate
+              {parsePercent(overview.totalLoaned  ? (overview.totalRepaid / overview.totalLoaned) * 100 : 0)}% collection rate
             </p>
           </div>
 
@@ -452,6 +453,7 @@ const AdminDashboard = () => {
                 >
                   <Cell fill="#3B82F6" />
                   <Cell fill="#10B981" />
+                  <Cell fill="#EF4444" />
                 </Pie>
                 <Tooltip formatter={(value) => formatCurrency(value)} />
               </PieChart>
