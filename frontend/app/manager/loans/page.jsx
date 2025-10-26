@@ -20,11 +20,11 @@ import {
   Activity,
   BarChart3,
 } from "lucide-react";
-import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
 import Link from "next/link";
 import { authDataContext } from "@/app/contexts/AuthContext";
+import ManagerLeftbar from "@/app/components/dashboard/ManagerLeftBar";
 
-const AdminLoans = () => {
+const ManagerLoans = () => {
   const { serverUrl } = useContext(authDataContext)
 
   const [loansData, setLoansData] = useState([]);
@@ -177,7 +177,7 @@ const AdminLoans = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <AdminLeftbar />
+      <ManagerLeftbar />
 
       <div className="flex-1 p-6">
         {/* Header */}
@@ -308,16 +308,6 @@ const AdminLoans = () => {
           </div>
         </div>
 
-        {/* Issue a new loan link cum button */}
-
-        <div className="flex w-full justify-center mb-6">
-          <Link href="/admin/loans/issueloan">
-            <button className="bg-gradient-to-r from-orange-400 to-orange-500 hover:transform hover:scale-105 text-white font-semibold py-2 px-6 rounded-lg cursor-pointer transition duration-300 ease-in-out">
-              Issue a new loan
-            </button>
-          </Link>
-        </div>
-
         {/* Filters */}
         <div className="bg-white rounded-xl shadow p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -341,16 +331,6 @@ const AdminLoans = () => {
               <option value="active">Active</option>
               <option value="closed">Closed</option>
               <option value="overdue">Overdue</option>
-            </select>
-
-            <select
-              value={filterIssuer}
-              onChange={(e) => setFilterIssuer(e.target.value)}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            >
-              <option value="all">All Issuers</option>
-              <option value="Admin">Admin</option>
-              <option value="Manager">Manager</option>
             </select>
           </div>
         </div>
@@ -411,7 +391,7 @@ const AdminLoans = () => {
                               </span>
                             </div>
                           </div>
-                          <Link href={`/admin/loans/record-payment/${loan._id}`}>
+                          <Link href={`/manager/loans/record-payment/${loan._id}`}>
                             <button className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-semibold px-4 py-2 rounded-full hover:transform hover:scale-105 transition cursor-pointer">
                               Record Payment
                             </button>
@@ -559,4 +539,4 @@ const AdminLoans = () => {
   );
 };
 
-export default AdminLoans;
+export default ManagerLoans;

@@ -19,14 +19,16 @@ export const login = async (req, res) => {
     }
 
     if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid email" });
+      // return res.status(401).json({ message: "Invalid email or password" });
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid password" });
+      // return res.status(401).json({ message: "Invalid email or password" });
     }
 
     // Generate token

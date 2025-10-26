@@ -21,8 +21,9 @@ import {
 } from "lucide-react";
 import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
 import { authDataContext } from "@/app/contexts/AuthContext";
+import ManagerLeftbar from "@/app/components/dashboard/ManagerLeftBar";
 
-const AdminSettings = () => {
+const ManagerSettings = () => {
     const { serverUrl } = useContext(authDataContext)
     const [activeTab, setActiveTab] = useState("profile");
     const [loading, setLoading] = useState(false);
@@ -55,12 +56,12 @@ const AdminSettings = () => {
         confirmPassword: "",
     });
 
-    // Fetch admin profile
+    // Fetch manager profile
     const fetchProfile = useCallback(async () => {
         setFetchLoading(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`${serverUrl}/api/admin/profile`, {
+            const res = await fetch(`${serverUrl}/api/manager/profile`, {
                 headers: {
                     Authorization: token ? `Bearer ${token}` : undefined,
                     "Content-Type": "application/json",
@@ -103,7 +104,7 @@ const AdminSettings = () => {
                 .map(c => c.trim())
                 .filter(c => c);
 
-            const res = await fetch(`${serverUrl}/api/admin/profile`, {
+            const res = await fetch(`${serverUrl}/api/manager/profile`, {
                 method: "PUT",
                 headers: {
                     Authorization: token ? `Bearer ${token}` : undefined,
@@ -152,7 +153,7 @@ const AdminSettings = () => {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`${serverUrl}/api/admin/password`, {
+            const res = await fetch(`${serverUrl}/api/manager/password`, {
                 method: "PUT",
                 headers: {
                     Authorization: token ? `Bearer ${token}` : undefined,
@@ -201,7 +202,7 @@ const AdminSettings = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
-            <AdminLeftbar />
+            <ManagerLeftbar />
 
             <div className="flex-1 p-6">
                 {/* Header */}
@@ -296,7 +297,7 @@ const AdminSettings = () => {
                                         <div>
                                             <h3 className="text-lg font-semibold text-gray-900">{profileData.name}</h3>
                                             <p className="text-sm text-gray-500">{profileData.email}</p>
-                                            {/* <p className="text-xs text-orange-600 mt-1 font-medium">Super Admin</p> */}
+                                            <p className="text-xs text-orange-600 mt-1 font-medium">{profileData.name}</p>
                                         </div>
                                     </div>
 
@@ -576,4 +577,4 @@ const AdminSettings = () => {
     );
 };
 
-export default AdminSettings;
+export default ManagerSettings;

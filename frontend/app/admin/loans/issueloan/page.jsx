@@ -336,8 +336,8 @@ const IssueLoan = () => {
                       value={formData.amount}
                       onChange={handleInputChange}
                       placeholder="Enter amount"
-                      min="1"
-                      step="1000"
+                      // min="1"
+                      // step="1000"
                       className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                       required
                     />

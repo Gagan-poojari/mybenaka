@@ -65,6 +65,26 @@ const loanSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+
+  repaymentSchedule: [{
+    dueDate: Date,
+    amount: Number,
+    status: {
+      type: String,
+      enum: ["pending", "paid", "overdue"],
+      default: "pending"
+    },
+    paidDate: Date,
+    paidAmount: Number
+  }],
+
+  monthlyInstallment: {
+    type: Number,
+  },
+
+  repaymentDay: {
+    type: Number,
+  },
   
   // Automatically calculated (set via pre-save hook)
   currentBalance: {

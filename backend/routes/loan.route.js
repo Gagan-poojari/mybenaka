@@ -16,6 +16,7 @@ import {
   deleteLoan,
   getPaymentRecords,
   getLast24hrPayments,
+  whoHasToPayToday,
 //   getLoanHistory,
 //   addLoanNote,
 //   applyLateFee,
@@ -43,10 +44,11 @@ loanRouter.put("/loans/:id", updateLoan);
 loanRouter.delete("/loans/:id", isAdmin, deleteLoan);
 
 // Payment Routes
-loanRouter.post("/loans/:id/payments", recordPayment); // id identifies the loan
+loanRouter.post("/loans/record-payment/:loanId", recordPayment); // id identifies the loan
 loanRouter.get("/loans/:id/payments", getPaymentRecords);
 
 loanRouter.get("/loans/payments/24hrs", getLast24hrPayments);
+loanRouter.get("/loans/due/today", whoHasToPayToday)
 
 // Loan Stats
 loanRouter.get("/stats", getMyPortfolioStats);

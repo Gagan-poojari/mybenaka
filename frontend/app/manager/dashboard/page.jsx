@@ -23,9 +23,9 @@ import {
   CheckCircle,
   RefreshCw,
 } from "lucide-react";
-import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
 import { set } from "react-hook-form";
 import { authDataContext } from "@/app/contexts/AuthContext";
+import ManagerLeftbar from "@/app/components/dashboard/ManagerLeftBar";
 import Link from "next/link";
 
 const defaultOverview = {
@@ -39,7 +39,7 @@ const defaultOverview = {
   totalManagers: 0,
 };
 
-const AdminDashboard = () => {
+const ManagerDashboard = () => {
   const { serverUrl } = useContext(authDataContext)
   console.log(serverUrl);
 
@@ -57,7 +57,7 @@ const AdminDashboard = () => {
     try {
       // adjust this URL to your backend (relative path works with proxy)
       const token = localStorage.getItem("token");
-      const res = await fetch(`${serverUrl}/api/admin/dashboard`, {
+      const res = await fetch(`${serverUrl}/api/manager/dashboard`, {
         headers: {
           // ensure token is a string (don't store an object in localStorage)
           Authorization: token ? `Bearer ${token}` : undefined,
@@ -158,7 +158,7 @@ const AdminDashboard = () => {
     }
   }, []);
 
-  const fetchDuePayments = useCallback(async () => {
+  const fetchDuePayments = useCallback( async () => {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${serverUrl}/api/loans/due/today`, {
@@ -172,11 +172,10 @@ const AdminDashboard = () => {
         const data = await res.json();
         setDuePaymentsToday(data);
       }
-      console.log("Payments due", duePaymentsToday);
     } catch (err) {
       console.error("Failed to fetch due payments:", err);
     }
-  }, []);
+  }, [serverUrl]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -285,14 +284,14 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <AdminLeftbar />
+      <ManagerLeftbar />
 
       {/* Main Content */}
       <div className="flex-1 max-w-full p-6">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Manager Dashboard</h1>
             <p className="text-gray-600 mt-2">
               Welcome back! Here's your system overview.
             </p>
@@ -430,7 +429,7 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <Link href={`/admin/loans/record-payment/${payment._id}`}>
+                  <Link href={`/manager/loans/record-payment/${payment._id}`}>
                     <button className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition">
                       Record Payment
                     </button>
@@ -495,67 +494,11 @@ const AdminDashboard = () => {
             </p>
           )}
         </div>
-
-
-
-        {/* Charts Row */}
-        {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 my-8"> */}
-        {/* Loan Status Pie Chart */}
-        {/* <div className="bg-white rounded-xl shadow p-6 h-[500px] border-t-4 border-orange-500">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Loan Status Distribution
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={100}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div> */}
-
-        {/* Money Flow Trends */}
-        {/* <div className="bg-white rounded-xl shadow p-6 border-t-4 border-orange-500">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Money Flow Trends
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={loanComparison}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={100}
-                  dataKey="value"
-                >
-                  <Cell fill="#3B82F6" />
-                  <Cell fill="#10B981" />
-                  <Cell fill="#EF4444" />
-                </Pie>
-                <Tooltip formatter={(value) => formatCurrency(value)} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div> */}
-        {/* </div> */}
+        
 
       </div>
     </div>
   );
 };
 
-export default AdminDashboard;
+export default ManagerDashboard;

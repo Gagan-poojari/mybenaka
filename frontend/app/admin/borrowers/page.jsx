@@ -183,7 +183,7 @@ const AdminBorrowers = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow p-6 border-l-4 border-orange-500">
             <div className="flex items-center justify-between">
               <div>
@@ -249,7 +249,7 @@ const AdminBorrowers = () => {
             </div>
             <p className="text-xs text-gray-500 mt-2">Pending collection</p>
           </div>
-        </div>
+        </div> */}
 
         {/* Search and Filter */}
         <div className="bg-white rounded-xl shadow p-6 mb-6">

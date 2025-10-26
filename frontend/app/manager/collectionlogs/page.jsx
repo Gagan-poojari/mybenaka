@@ -18,8 +18,8 @@ import {
   Mail,
   AlertCircle,
 } from "lucide-react";
-import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
 import { authDataContext } from "@/app/contexts/AuthContext";
+import ManagerLeftbar from "@/app/components/dashboard/ManagerLeftBar";
 
 const CollectionLogs = () => {
   const { serverUrl } = useContext(authDataContext)
@@ -200,7 +200,7 @@ const CollectionLogs = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <AdminLeftbar />
+      <ManagerLeftbar />
 
       <div className="flex-1 p-6">
         {/* Header */}

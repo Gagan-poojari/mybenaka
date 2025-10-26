@@ -1,6 +1,7 @@
 import express from "express";
 import { isAuth, isManager } from "../middlewares/authorize.js";
 import {
+  getDashboardStatsManager,
   getManagerBorrowers, 
   getManagerBorrowersById, 
   getManagerIssuedLoans, 
@@ -15,6 +16,10 @@ const managerRouter = express.Router();
 managerRouter.use(isAuth, isManager);
 
 managerRouter.get("/profile", getManagerProfile);
+
+// Dashboard
+managerRouter.get("/dashboard", getDashboardStatsManager);
+
 
 managerRouter.get("/portfolio-stats", getManagerPortfolioStats);
 managerRouter.get("/overdue-loans", getManagerOverdueLoans)

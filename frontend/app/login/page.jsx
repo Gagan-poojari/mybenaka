@@ -108,13 +108,6 @@ const LoginPage = () => {
             {disableLogin ? "Logging in..." : "Log In"}
           </button>
         </form>
-
-        <p className="text-sm mt-4 text-center">
-          Facing issues while logging in?{" "}
-          <Link href="/contact" className="text-orange-600 hover:underline">
-            Contact
-          </Link>
-        </p>
       </div>
     </div>
   );

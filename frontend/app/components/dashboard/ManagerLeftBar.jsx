@@ -20,15 +20,12 @@ import Link from "next/link";
 
 const navItems = [
     { key: "dashboard", label: "Dashboard", icon: Home },
-    { key: "managers", label: "Managers", icon: Users },
-    { key: "borrowers", label: "Borrowers", icon: FileText },
     { key: "loans", label: "My Loans", icon: CreditCard },
     { key: "collectionlogs", label: "Collection Logs", icon: IndianRupee },
-    { key: "activitylogs", label: "Activity Logs", icon: ChartPie },
     { key: "settings", label: "Settings", icon: Settings },
 ];
 
-const AdminLeftbar = () => {
+const ManagerLeftbar = () => {
     const pathname = usePathname()
 
     const [open, setOpen] = useState(true); // desktop expanded state
@@ -37,13 +34,10 @@ const AdminLeftbar = () => {
 
     // Map routes to nav keys
     const getActiveKey = () => {
-        if (pathname === '/admin' || pathname === '/admin/dashboard') return 'dashboard';
-        if (pathname.startsWith('/admin/managers')) return 'managers';
-        if (pathname.startsWith('/admin/borrowers')) return 'borrowers';
-        if (pathname.startsWith('/admin/loans')) return 'loans';
-        if (pathname.startsWith('/admin/collectionlogs')) return 'collectionlogs';
-        if (pathname.startsWith('/admin/activitylogs')) return 'activitylogs';
-        if (pathname.startsWith('/admin/settings')) return 'settings';
+        if (pathname === '/manager' || pathname === '/manager/dashboard') return 'dashboard';
+        if (pathname.startsWith('/manager/loans')) return 'loans';
+        if (pathname.startsWith('/manager/collectionlogs')) return 'collectionlogs';
+        if (pathname.startsWith('/manager/settings')) return 'settings';
         return 'dashboard';
     };
     const active = getActiveKey();
@@ -106,7 +100,7 @@ const AdminLeftbar = () => {
                                     <div className="flex items-center font-semibold">
                                         <span className="text-orange-600">My</span><span className="text-slate-900">Benaka</span>
                                     </div>
-                                    <div className="text-xs text-slate-500">Dashboard</div>
+                                    <div className="text-xs text-slate-500">Premium Dashboard</div>
                                 </div>
                             )}
                         </div>
@@ -119,7 +113,7 @@ const AdminLeftbar = () => {
                                 const Icon = n.icon;
                                 const activeItem = n.key === active;
                                 return (
-                                    <Link key={n.key} href={`/admin/${n.key}`} className="group w-full flex items-center gap-3 text-left rounded-lg hover:bg-orange-50 transition-colors duration-150 focus:outline-none cursor-pointer">
+                                    <Link key={n.key} href={`/manager/${n.key}`} className="group w-full flex items-center gap-3 text-left rounded-lg hover:bg-orange-50 transition-colors duration-150 focus:outline-none cursor-pointer">
                                         <motion.button
                                             key={n.key}
                                             variants={item}
@@ -150,21 +144,6 @@ const AdminLeftbar = () => {
                             })}
                         </motion.nav>
                     </div>
-
-                    {/* Footer */}
-                    <div className="p-4 border-t border-slate-100">
-                        <div className="flex items-center gap-3 justify-center">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center ring-1 ring-slate-100">
-                                    <img src="https://api.dicebear.com/5.x/initials/svg?seed=SA" alt="avatar" className="w-8 h-8 rounded-md" />
-                                </div>
-                                <div>
-                                    <div className="text-sm font-semibold text-slate-900">Super Admin</div>
-                                    <div className="text-xs text-slate-400">admin@mybenaka.com</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </motion.div>
             </aside>
 
@@ -191,8 +170,8 @@ const AdminLeftbar = () => {
                                             </div>
                                         </div>
                                         <div>
-                                            <div className="text-slate-900 font-semibold">Benaka Admin</div>
-                                            <div className="text-xs text-slate-500">Premium Dashboard</div>
+                                            <div className="text-slate-900 font-semibold">Benaka Manager</div>
+                                            <div className="text-xs text-slate-500">Dashboard</div>
                                         </div>
                                     </div>
 
@@ -207,7 +186,7 @@ const AdminLeftbar = () => {
                                             const Icon = n.icon;
                                             const activeItem = n.key === active;
                                             return (
-                                                <Link key={n.key} href={`/admin/${n.key}`} className="w-full flex items-center gap-3 text-left rounded-lg p-3 hover:bg-orange-50 transition-colors duration-150">
+                                                <Link key={n.key} href={`/manager/${n.key}`} className="w-full flex items-center gap-3 text-left rounded-lg p-3 hover:bg-orange-50 transition-colors duration-150">
                                                 <button
                                                     key={n.key}
                                                     onClick={() => {
@@ -233,19 +212,7 @@ const AdminLeftbar = () => {
                                     </nav>
                                 </div>
 
-                                <div className="p-4 border-t border-slate-100">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center ring-1 ring-slate-100">
-                                                <img src="https://api.dicebear.com/5.x/initials/svg?seed=SA" alt="avatar" className="w-8 h-8 rounded-md" />
-                                            </div>
-                                            <div>
-                                                <div className="text-sm font-semibold text-slate-900">Super Admin</div>
-                                                <div className="text-xs text-slate-400">admin@mybenaka.com</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+        
                             </div>
                         </motion.div>
                     </motion.div>
@@ -255,4 +222,4 @@ const AdminLeftbar = () => {
     );
 }
 
-export default AdminLeftbar
+export default ManagerLeftbar

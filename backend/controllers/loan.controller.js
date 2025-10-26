@@ -4,9 +4,28 @@ import Admin from "../models/admin.model.js";
 import Manager from "../models/manager.model.js";
 import Log from "../models/log.model.js";
 
-const parseDate = (dateStr) => {
-  const [day, month, year] = dateStr.split("-");
-  return new Date(Date.UTC(year, month - 1, day)); // month is 0-based
+// Ensures proper date parsing even if input is a string like "2025-10-26"
+const parseDate = (dateInput) => {
+  if (!dateInput) return null;
+
+  // If already a Date, return as is
+  if (dateInput instanceof Date) return dateInput;
+
+  // Handle timestamp (number)
+  if (!isNaN(dateInput)) return new Date(Number(dateInput));
+
+  // Handle ISO or YYYY-MM-DD strings safely
+  const parsed = new Date(dateInput);
+  if (!isNaN(parsed.getTime())) return parsed;
+
+  // Try manual split for "YYYY-MM-DD" (prevents UTC offset issue)
+  const parts = dateInput.split("-");
+  if (parts.length === 3) {
+    const [year, month, day] = parts.map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  return null;
 };
 
 
@@ -201,6 +220,64 @@ export const deleteBorrower = async (req, res) => {
 
 // ============ LOAN OPERATIONS ============
 
+// export const issueLoan = async (req, res) => {
+//   try {
+//     const { borrowerId, amount, interestRate, startDate, dueDate } = req.body;
+
+//     const borrower = await Borrower.findById(borrowerId);
+
+//     if (!borrower) {
+//       return res.status(404).json({ message: "Borrower not found" });
+//     }
+
+//     // Check if user has access to this borrower
+//     if (req.user.role === "Manager" && borrower.addedBy.toString() !== req.user.id) {
+//       return res.status(403).json({ message: "You can only issue loans to your own borrowers" });
+//     }
+
+//     const loan = await Loan.create({
+//       borrower: borrowerId,
+//       issuedBy: req.user.id,
+//       issuedByRole: req.user.role,
+//       amount,
+//       interestRate,
+//       startDate: parseDate(startDate),
+//       dueDate: parseDate(dueDate),
+//       status: "active"
+//     });
+
+//     // Update borrower's loans array
+//     await Borrower.findByIdAndUpdate(borrowerId, {
+//       $push: { loans: loan._id }
+//     });
+
+//     // Update user's loanIssued array
+//     const Model = req.user.role === "Admin" ? Admin : Manager;
+//     await Model.findByIdAndUpdate(req.user.id, {
+//       $push: { loanIssued: loan._id }
+//     });
+
+//     // Log activity
+//     await Log.create({
+//       type: "Activity",
+//       action: "ISSUE_LOAN",
+//       details: `Issued loan of ₹${loan.amount} to ${borrower.name} (Loan ID: ${loan._id})`,
+//       ownerType: req.user.role,
+//       ownerId: req.user.id
+//     })
+
+//     const populatedLoan = await Loan.findById(loan._id)
+//       .populate("borrower", "name phone")
+//       .populate("issuedBy", "name email");
+
+//     res.status(201).json({ message: "Loan issued successfully", loan: populatedLoan });
+
+//   } catch (error) {
+//     res.status(500).json({ message: "Error issuing loan", error: error.message });
+//   }
+// };
+
+
 export const issueLoan = async (req, res) => {
   try {
     const { borrowerId, amount, interestRate, startDate, dueDate } = req.body;
@@ -216,15 +293,97 @@ export const issueLoan = async (req, res) => {
       return res.status(403).json({ message: "You can only issue loans to your own borrowers" });
     }
 
+    // Parse dates correctly
+    const start = parseDate(startDate);
+    const end = parseDate(dueDate);
+    
+    console.log("Parsed start date:", start);
+    console.log("Parsed end date:", end);
+    
+    // Validate dates
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: "Invalid date format" });
+    }
+    
+    if (end <= start) {
+      return res.status(400).json({ message: "Due date must be after start date" });
+    }
+    
+    // Calculate loan details
+    const interestAmount = (amount * interestRate) / 100;
+    const totalDue = amount + interestAmount;
+    
+    // Calculate duration in months
+    const durationInMonths = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24 * 30)));
+    const monthlyInstallment = totalDue / durationInMonths;
+    const repaymentDay = start.getDate(); // Use start date's day as monthly repayment day
+
+    console.log("Loan calculation:", {
+      amount,
+      interestRate,
+      interestAmount,
+      totalDue,
+      durationInMonths,
+      monthlyInstallment,
+      repaymentDay
+    });
+
+    // Generate repayment schedule
+    const repaymentSchedule = [];
+    let currentDate = new Date(start);
+    let remainingAmount = totalDue;
+    
+    for (let i = 0; i < durationInMonths; i++) {
+      // Move to next month
+      currentDate = new Date(currentDate);
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      
+      // Try to maintain the same day of month
+      const targetDay = repaymentDay;
+      const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+      
+      // If target day doesn't exist in this month (e.g., Feb 31), use last day
+      if (targetDay > lastDayOfMonth) {
+        currentDate.setDate(lastDayOfMonth);
+      } else {
+        currentDate.setDate(targetDay);
+      }
+      
+      // Don't exceed the due date
+      if (currentDate > end) {
+        currentDate = new Date(end);
+      }
+      
+      // Calculate installment amount
+      const isLastInstallment = (i === durationInMonths - 1) || (currentDate >= end);
+      const installmentAmount = isLastInstallment ? remainingAmount : monthlyInstallment;
+      
+      repaymentSchedule.push({
+        dueDate: new Date(currentDate),
+        amount: Math.round(installmentAmount * 100) / 100, // Round to 2 decimals
+        status: "pending"
+      });
+      
+      remainingAmount -= installmentAmount;
+      
+      if (currentDate >= end) break;
+    }
+
+    console.log("Repayment schedule:", repaymentSchedule);
+
+    // Create loan
     const loan = await Loan.create({
       borrower: borrowerId,
       issuedBy: req.user.id,
       issuedByRole: req.user.role,
       amount,
       interestRate,
-      startDate: parseDate(startDate),
-      dueDate: parseDate(dueDate),
-      status: "active"
+      startDate: start,
+      dueDate: end,
+      status: "active",
+      monthlyInstallment: Math.round(monthlyInstallment * 100) / 100,
+      repaymentDay,
+      repaymentSchedule
     });
 
     // Update borrower's loans array
@@ -242,21 +401,29 @@ export const issueLoan = async (req, res) => {
     await Log.create({
       type: "Activity",
       action: "ISSUE_LOAN",
-      details: `Issued loan of ₹${loan.amount} to ${borrower.name} (Loan ID: ${loan._id})`,
+      details: `Issued loan of ₹${loan.amount} to ${borrower.name} (Loan ID: ${loan._id}). Monthly installment: ₹${monthlyInstallment.toFixed(2)}`,
       ownerType: req.user.role,
       ownerId: req.user.id
-    })
+    });
 
     const populatedLoan = await Loan.findById(loan._id)
       .populate("borrower", "name phone")
       .populate("issuedBy", "name email");
 
-    res.status(201).json({ message: "Loan issued successfully", loan: populatedLoan });
+    res.status(201).json({ 
+      message: "Loan issued successfully", 
+      loan: populatedLoan 
+    });
 
   } catch (error) {
-    res.status(500).json({ message: "Error issuing loan", error: error.message });
+    console.error("Error issuing loan:", error);
+    res.status(500).json({ 
+      message: "Error issuing loan", 
+      error: error.message 
+    });
   }
 };
+
 export const updateLoan = async (req, res) => {
   try {
     const loan = await Loan.findById(req.params.id);
@@ -368,7 +535,12 @@ export const getLoanById = async (req, res) => {
 
 export const recordPayment = async (req, res) => {
   try {
-    const { loanId, amount, date } = req.body;
+    const loanId = req.params.loanId || req.body.loanId;
+    const { amount, date } = req.body;
+
+    if (!loanId) {
+      return res.status(400).json({ message: "Loan ID is required" });
+    }
 
     const loan = await Loan.findById(loanId).populate("borrower", "name phone");
 
@@ -376,7 +548,10 @@ export const recordPayment = async (req, res) => {
       return res.status(404).json({ message: "Loan not found" });
     }
 
-    if (loan.currentBalance <= 0) {
+    const totalPaid = loan.payments.reduce((sum, p) => sum + p.amount, 0);
+    const totalDue = loan.amount + (loan.amount * loan.interestRate / 100);
+    
+    if (totalPaid >= totalDue) {
       return res.status(400).json({ message: "Loan is already fully paid" });
     }
 
@@ -385,14 +560,11 @@ export const recordPayment = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    // Calculate total paid
-    const totalPaid = loan.payments.reduce((sum, p) => sum + p.amount, 0) + amount;
-    const totalDue = loan.amount + (loan.amount * loan.interestRate / 100);
-    const currentBalance = totalDue - totalPaid;
-    loan.amountPaid = totalPaid;
+    const newTotalPaid = totalPaid + amount;
+    const currentBalance = totalDue - newTotalPaid;
+    loan.amountPaid = newTotalPaid;
 
     // Add payment to loan
-
     loan.payments.push({
       date: new Date(date),
       amount,
@@ -400,6 +572,27 @@ export const recordPayment = async (req, res) => {
       receivedBy: req.user.id,
       receivedByRole: req.user.role
     });
+
+    // Update repayment schedule - mark installments as paid
+    let remainingAmount = amount;
+    const paymentDate = new Date(date);
+    
+    for (let schedule of loan.repaymentSchedule) {
+      if (remainingAmount <= 0) break;
+      
+      if (schedule.status === "pending" || schedule.status === "overdue") {
+        const amountToPay = Math.min(remainingAmount, schedule.amount - (schedule.paidAmount || 0));
+        
+        schedule.paidAmount = (schedule.paidAmount || 0) + amountToPay;
+        
+        if (schedule.paidAmount >= schedule.amount) {
+          schedule.status = "paid";
+          schedule.paidDate = paymentDate;
+        }
+        
+        remainingAmount -= amountToPay;
+      }
+    }
 
     // Update loan status
     if (currentBalance <= 0) {
@@ -411,18 +604,16 @@ export const recordPayment = async (req, res) => {
     await loan.save();
 
     // Log activity
-    const Model = req.user.role === "Admin" ? Admin : Manager;
     await Log.create({
       type: "Collection",          
       action: "RECORD_PAYMENT",
       amount,                        
       loan: loanId,                  
-      borrower: loan.borrower,       
+      borrower: loan.borrower._id,       
       receivedBy: req.user.id,       
       receivedByRole: req.user.role, 
       ownerType: req.user.role,      
       ownerId: req.user.id,
-
       details: `Recorded payment of ₹${amount} for ${loan.borrower.name} (Loan ID: ${loanId})`
     });
 
@@ -472,9 +663,9 @@ export const getLast24hrPayments = async (req, res) => {
       createdAt: { $gte: yesterday, $lte: now }
     };
 
-    if (req.user.role === "Manager") {
-      query.receivedBy = req.user.id;
-    }
+    // if (req.user.role === "Manager") {
+    //   query.receivedBy = req.user.id;
+    // }
 
     const payments = await Log.find(query)
       .populate("loan", "amount status")
@@ -485,6 +676,86 @@ export const getLast24hrPayments = async (req, res) => {
     res.status(200).json(payments);
   } catch (error) {
     res.status(500).json({ message: "Error fetching payments", error: error.message });
+  }
+};
+
+export const whoHasToPayToday = async (req, res) => {
+  try {
+    const today = new Date();
+    const todayDay = today.getDate();
+
+    // Normalize to start/end of day (UTC safe)
+    const startOfDay = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0));
+    const endOfDay = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999));
+
+    // Build query
+    const query = {
+      status: { $in: ["active", "overdue"] },
+      $or: [
+        // New loans using repayment schedule
+        {
+          repaymentSchedule: {
+            $elemMatch: {
+              dueDate: { $gte: startOfDay, $lte: endOfDay },
+              status: { $in: ["pending", "overdue"] },
+            },
+          },
+        },
+        // Old loans using repaymentDay
+        {
+          repaymentDay: todayDay,
+          $or: [
+            { repaymentSchedule: { $exists: false } },
+            { repaymentSchedule: { $size: 0 } }
+          ]
+        },
+      ],
+    };
+
+    const loans = await Loan.find(query)
+      .populate("borrower", "name phone")
+      .populate("issuedBy", "name email issuedByRole")
+      .lean(); // lean() for faster mapping
+
+    // Format due payments
+    const duePayments = loans.map((loan) => {
+      const payments = loan.payments || [];
+      const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+      const totalDue = loan.amount + (loan.amount * loan.interestRate) / 100;
+      const currentBalance = Math.max(0, totalDue - totalPaid);
+
+      // Find today's installment (UTC-normalized)
+      let todayInstallment = null;
+      if (loan.repaymentSchedule?.length) {
+        todayInstallment = loan.repaymentSchedule.find((schedule) => {
+          const d = new Date(schedule.dueDate);
+          return d >= startOfDay && d <= endOfDay;
+        });
+      }
+
+      return {
+        _id: loan._id,
+        borrower: loan.borrower,
+        loanAmount: loan.amount,
+        interestRate: loan.interestRate,
+        totalPaid,
+        totalDue,
+        currentBalance,
+        dueToday: todayInstallment?.amount || loan.monthlyInstallment || (currentBalance / 12),
+        installmentStatus: todayInstallment?.status || "pending",
+        dueDate: todayInstallment?.dueDate || today,
+        status: loan.status,
+        issuedBy: loan.issuedBy,
+        issuedByRole: loan.issuedByRole || req.user.role,
+      };
+    });
+
+    // Sort by borrower name safely
+    duePayments.sort((a, b) => a.borrower?.name?.localeCompare(b.borrower?.name || ""));
+
+    res.status(200).json(duePayments);
+  } catch (error) {
+    console.error("Error fetching due payments:", error);
   }
 };
 

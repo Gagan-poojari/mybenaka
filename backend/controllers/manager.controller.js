@@ -20,7 +20,41 @@ export const getManagerProfile = async (req, res) => {
         res.status(500).json({ message: "Error fetching manager", error: error.message });
     }
 }
+export const getDashboardStatsManager = async (req, res) => {
+  try {
+    const totalManagers = await Manager.countDocuments();
+    const totalBorrowers = await Borrower.countDocuments();
+    const totalLoans = await Loan.countDocuments();
 
+    const loans = await Loan.find();
+
+    const activeLoans = loans.filter(l => l.status === "active").length;
+    const overdueLoans = loans.filter(l => l.status === "overdue").length;
+    const closedLoans = loans.filter(l => l.status === "closed").length;
+
+    const totalLoaned = loans.reduce((sum, loan) => sum + (loan.amount || 0), 0);
+    const totalRepaid = loans.reduce((sum, payment) => sum + payment.amountPaid, 0);
+
+    const totalInterestExpected = loans.reduce((sum, loan) => {
+      return sum + ((loan.amount * loan.interestRate / 100) || 0);
+    }, 0);
+
+    res.status(200).json({
+      totalManagers,
+      totalBorrowers,
+      totalLoans,
+      activeLoans,
+      overdueLoans,
+      closedLoans,
+      totalLoaned,
+      totalRepaid,
+      outstanding: totalLoaned - totalRepaid,
+      totalInterestExpected
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching dashboard stats", error: error.message });
+  }
+};
 export const getManagerPortfolioStats = async(req, res) => {
     try {
         const loans = await Loan.find({ issuedBy: req.user.id })

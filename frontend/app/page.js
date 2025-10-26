@@ -1,17 +1,17 @@
-import CTA from "./components/landing/CTA";
-import Features from "./components/landing/Features";
-import Footer from "./components/landing/Footer";
+// import CTA from "./components/landing/CTA";
+// import Navbar from "./components/landing/NavBar";
 import HeroSection from "./components/landing/HeroSection";
-import Navbar from "./components/landing/NavBar";
+// import Features from "./components/landing/Features";
+// import Footer from "./components/landing/Footer";
 
 export default function Home() {
   return (
     <main>
-      <Navbar />
+      {/* <Navbar /> */}
       <HeroSection />
-      <Features />
-      <CTA />
-      <Footer />
+      {/* <Features />
+      <CTA /> */}
+      {/* <Footer /> */}
     </main>
   );
 }
