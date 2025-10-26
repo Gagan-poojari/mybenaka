@@ -36,6 +36,7 @@ export const addBorrower = async (req, res) => {
     const {
       name,
       phone,
+      email,
       alternatePhone,
       guardianName,
       relationship,
@@ -46,6 +47,7 @@ export const addBorrower = async (req, res) => {
     const borrower = await Borrower.create({
       name,
       phone,
+      email,
       alternatePhone,
       guardianName,
       relationship,

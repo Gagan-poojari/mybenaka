@@ -46,11 +46,13 @@ const BorrowersOptions = () => {
     // Form data
     const [formData, setFormData] = useState({
         name: "",
-        email: "",
         phone: "",
-        address: "",
-        dateOfBirth: "",
-        occupation: "",
+        email: "",
+        alternatePhone: "",
+        guardianName: "",
+        relationship: "",
+        permanentAddress: "",
+        temporaryAddress: "",
     });
 
     const fetchBorrowers = useCallback(async () => {
@@ -91,11 +93,13 @@ const BorrowersOptions = () => {
     const resetForm = () => {
         setFormData({
             name: "",
-            email: "",
             phone: "",
-            address: "",
-            dateOfBirth: "",
-            occupation: "",
+            email: "",
+            alternatePhone: "",
+            guardianName: "",
+            relationship: "",
+            permanentAddress: "",
+            temporaryAddress: "",
         });
     };
 
@@ -117,9 +121,11 @@ const BorrowersOptions = () => {
                     name: formData.name,
                     email: formData.email,
                     phone: formData.phone,
-                    address: formData.address,
-                    dateOfBirth: formData.dateOfBirth,
-                    occupation: formData.occupation,
+                    alternatePhone: formData.alternatePhone,
+                    guardianName: formData.guardianName,
+                    relationship: formData.relationship,
+                    permanentAddress: formData.permanentAddress,
+                    temporaryAddress: formData.temporaryAddress,
                 }),
             });
 
@@ -158,9 +164,11 @@ const BorrowersOptions = () => {
                     name: formData.name,
                     email: formData.email,
                     phone: formData.phone,
-                    address: formData.address,
-                    dateOfBirth: formData.dateOfBirth,
-                    occupation: formData.occupation,
+                    alternatePhone: formData.alternatePhone,
+                    guardianName: formData.guardianName,
+                    relationship: formData.relationship,
+                    permanentAddress: formData.permanentAddress,
+                    temporaryAddress: formData.temporaryAddress,
                 }),
             });
 
@@ -462,20 +470,6 @@ const BorrowersOptions = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Email *
-                                    </label>
-                                    <input
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        placeholder="borrower@example.com"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Phone Number *
                                     </label>
                                     <input
@@ -490,38 +484,83 @@ const BorrowersOptions = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Date of Birth
+                                        Email
                                     </label>
                                     <input
-                                        type="date"
-                                        value={formData.dateOfBirth}
-                                        onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="borrower@mybenaka.com"
+                                        required
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Occupation
+                                        Alternate Phone Number
                                     </label>
                                     <input
                                         type="text"
-                                        value={formData.occupation}
-                                        onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+                                        value={formData.alternatePhone}
+                                        onChange={(e) => setFormData({ ...formData, alternatePhone: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        placeholder="Enter occupation"
+                                        placeholder="Enter alternate phone number"
+                                        required
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Address *
+                                        Guardian Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.guardianName}
+                                        onChange={(e) => setFormData({ ...formData, guardianName: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter guardian name of the borrower"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Guardian's Relationship
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.relationship}
+                                        onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter relationship of guardian to the borrower"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Permanent Address
                                     </label>
                                     <textarea
-                                        value={formData.address}
-                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                        value={formData.permanentAddress}
+                                        onChange={(e) => setFormData({ ...formData, permanentAddress: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        placeholder="Enter address"
+                                        placeholder="Enter permanent address"
+                                        rows="3"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Temporary Address
+                                    </label>
+                                    <textarea
+                                        value={formData.temporaryAddress}
+                                        onChange={(e) => setFormData({ ...formData, temporaryAddress: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter temporary address"
                                         rows="3"
                                         required
                                     />
@@ -576,19 +615,7 @@ const BorrowersOptions = () => {
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Email *
-                                    </label>
-                                    <input
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter borrower name"
                                         required
                                     />
                                 </div>
@@ -602,46 +629,95 @@ const BorrowersOptions = () => {
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter phone number"
                                         required
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Date of Birth
+                                        Email
                                     </label>
                                     <input
-                                        type="date"
-                                        value={formData.dateOfBirth}
-                                        onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="borrower@mybenaka.com"
+                                        required
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Occupation
+                                        Alternate Phone Number
                                     </label>
                                     <input
                                         type="text"
-                                        value={formData.occupation}
-                                        onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+                                        value={formData.alternatePhone}
+                                        onChange={(e) => setFormData({ ...formData, alternatePhone: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter alternate phone number"
+                                        required
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Address *
+                                        Guardian Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.guardianName}
+                                        onChange={(e) => setFormData({ ...formData, guardianName: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter guardian name of the borrower"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Guardian's Relationship
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.relationship}
+                                        onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter relationship of guardian to the borrower"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Permanent Address
                                     </label>
                                     <textarea
-                                        value={formData.address}
-                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                        value={formData.permanentAddress}
+                                        onChange={(e) => setFormData({ ...formData, permanentAddress: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter permanent address"
                                         rows="3"
                                         required
                                     />
                                 </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Temporary Address
+                                    </label>
+                                    <textarea
+                                        value={formData.temporaryAddress}
+                                        onChange={(e) => setFormData({ ...formData, temporaryAddress: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter temporary address"
+                                        rows="3"
+                                        required
+                                    />
+                                </div>
+
 
                                 <button
                                     type="submit"
@@ -827,13 +903,12 @@ const BorrowersOptions = () => {
                                                                     </p>
                                                                 </div>
                                                                 <span
-                                                                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                                        loan.status === "active"
+                                                                    className={`px-3 py-1 rounded-full text-xs font-medium ${loan.status === "active"
                                                                             ? "bg-green-100 text-green-700"
                                                                             : loan.status === "closed"
                                                                                 ? "bg-gray-100 text-gray-700"
                                                                                 : "bg-red-100 text-red-700"
-                                                                    }`}
+                                                                        }`}
                                                                 >
                                                                     {loan.status}
                                                                 </span>
