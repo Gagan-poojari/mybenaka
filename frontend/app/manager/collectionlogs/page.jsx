@@ -228,71 +228,7 @@ const CollectionLogs = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
-                <IndianRupee className="w-6 h-6" />
-              </div>
-              <TrendingUp className="w-6 h-6 opacity-70" />
-            </div>
-            <p className="text-sm opacity-90 mb-1">Total Collected</p>
-            <p className="text-3xl font-bold">{formatCurrency(totalCollected)}</p>
-            <p className="text-xs opacity-75 mt-2">{stats.totalCollections} transactions</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Today's Collection</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(stats.todayTotal)}
-                </p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Calendar className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {stats.todayCollections} payments today
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-purple-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Average Collection</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(stats.avgCollection)}
-                </p>
-              </div>
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <DollarSign className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Per transaction</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-orange-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Collection Rate</p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-2xl font-bold text-gray-900">
-                    {stats.managerCollections}
-                  </p>
-                  <span className="text-sm text-gray-500">/ {stats.adminCollections}</span>
-                </div>
-              </div>
-              <div className="bg-orange-100 p-3 rounded-lg">
-                <Users className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Manager / Admin</p>
-          </div>
-        </div> */}
-
+        
         {/* Role Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow p-6">

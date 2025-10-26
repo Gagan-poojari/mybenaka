@@ -43,6 +43,6 @@ logsRouter.get('/loan/:loanId', isAuth, getLoanLogs);
 logsRouter.get('/activity/all', isAuth, getAllActivityLogs);
 
 // All Collection Logs (system-wide)
-logsRouter.get('/collection/all', isAuth, isAdmin, getAllCollectionLogs);
+logsRouter.get('/collection/all', isAuth, getAllCollectionLogs);
 
 export default logsRouter;
