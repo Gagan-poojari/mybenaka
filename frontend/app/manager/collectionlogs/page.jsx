@@ -52,13 +52,13 @@ const CollectionLogs = () => {
         try {
           const json = await res.json();
           if (json?.message) msg = json.message;
-        } catch (e) {}
+        } catch (e) { }
         throw new Error(msg);
       }
 
       const data = await res.json();
       console.log("Collection logs data:", data);
-      
+
       setLogsData(data.logs || []);
       setTotalCollected(data.totalCollected || 0);
       setPagination(data.pagination || {});
@@ -95,7 +95,7 @@ const CollectionLogs = () => {
     if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
     if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
     if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    
+
     return date.toLocaleDateString("en-IN", {
       year: "numeric",
       month: "short",
@@ -127,18 +127,18 @@ const CollectionLogs = () => {
   const getStats = () => {
     const adminCollections = logsData.filter(log => log.receivedByRole === "Admin");
     const managerCollections = logsData.filter(log => log.receivedByRole === "Manager");
-    
+
     const adminTotal = adminCollections.reduce((sum, log) => sum + (log.amount || 0), 0);
     const managerTotal = managerCollections.reduce((sum, log) => sum + (log.amount || 0), 0);
 
     const today = new Date().toDateString();
-    const todayCollections = logsData.filter(log => 
+    const todayCollections = logsData.filter(log =>
       new Date(log.timestamp).toDateString() === today
     );
     const todayTotal = todayCollections.reduce((sum, log) => sum + (log.amount || 0), 0);
 
-    const avgCollection = logsData.length > 0 
-      ? totalCollected / logsData.length 
+    const avgCollection = logsData.length > 0
+      ? totalCollected / logsData.length
       : 0;
 
     return {
@@ -154,18 +154,88 @@ const CollectionLogs = () => {
   };
 
   const filteredLogs = logsData.filter((log) => {
-    const matchesSearch = 
+    const matchesSearch =
       log.borrower?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.receivedBy?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.borrower?.phone?.includes(searchTerm) ||
       log.details?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesRole = filterRole === "all" || log.receivedByRole === filterRole;
-    
+
     return matchesSearch && matchesRole;
   });
 
   const dateFilteredLogs = getDateFilteredLogs(filteredLogs, dateFilter);
+
+  const exportToCSV = () => {
+    // Use the filtered logs for export
+    const dataToExport = dateFilteredLogs;
+
+    if (dataToExport.length === 0) {
+      alert("No data to export");
+      return;
+    }
+
+    // Define CSV headers
+    const headers = [
+      "Transaction ID",
+      "Date & Time",
+      "Amount (₹)",
+      "Borrower Name",
+      "Borrower Phone",
+      "Collector Name",
+      "Collector Role",
+      "Collector Email",
+      "Loan Amount (₹)",
+      "Loan Status",
+      "Details",
+      "Status"
+    ];
+
+    // Convert data to CSV rows
+    const rows = dataToExport.map(log => [
+      log._id || "",
+      new Date(log.timestamp).toLocaleString("en-IN"),
+      log.amount || 0,
+      log.borrower?.name || "",
+      log.borrower?.phone || "",
+      log.receivedBy?.name || "",
+      log.receivedByRole || "",
+      log.receivedBy?.email || "",
+      log.loan?.amount || "",
+      log.loan?.status || "",
+      log.details || "",
+      log.metadata?.status || "Cleared"
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row =>
+        row.map(cell => {
+          // Escape cells that contain commas or quotes
+          const cellStr = String(cell);
+          if (cellStr.includes(",") || cellStr.includes('"') || cellStr.includes("\n")) {
+            return `"${cellStr.replace(/"/g, '""')}"`;
+          }
+          return cellStr;
+        }).join(",")
+      )
+    ].join("\n");
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", `collection-logs-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (loading) {
     return (
@@ -220,6 +290,7 @@ const CollectionLogs = () => {
               Refresh
             </button>
             <button
+              onClick={exportToCSV}
               className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
             >
               <Download className="w-4 h-4" />
@@ -228,7 +299,7 @@ const CollectionLogs = () => {
           </div>
         </div>
 
-        
+
         {/* Role Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow p-6">
@@ -317,7 +388,7 @@ const CollectionLogs = () => {
         {/* Collections List */}
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Collections</h2>
-          
+
           {dateFilteredLogs.length === 0 ? (
             <div className="text-center py-12">
               <DollarSign className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -351,11 +422,10 @@ const CollectionLogs = () => {
                           <span className="text-2xl font-bold text-gray-900">
                             {formatCurrency(log.amount)}
                           </span>
-                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                            log.receivedByRole === 'Admin' 
-                              ? 'bg-blue-100 text-blue-700' 
+                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${log.receivedByRole === 'Admin'
+                              ? 'bg-blue-100 text-blue-700'
                               : 'bg-orange-100 text-orange-700'
-                          }`}>
+                            }`}>
                             {log.receivedByRole}
                           </span>
                           <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">
@@ -407,11 +477,10 @@ const CollectionLogs = () => {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-600">Status:</span>
-                                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                    log.loan.status === 'active' 
-                                      ? 'bg-green-100 text-green-700' 
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${log.loan.status === 'active'
+                                      ? 'bg-green-100 text-green-700'
                                       : 'bg-gray-100 text-gray-700'
-                                  }`}>
+                                    }`}>
                                     {log.loan.status}
                                   </span>
                                 </div>
