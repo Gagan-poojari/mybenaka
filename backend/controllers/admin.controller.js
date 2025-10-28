@@ -9,8 +9,8 @@ export const getAdminProfile = async (req, res) => {
   try {
     const admin = await Admin.findById(req.user.id)
       .select("-password")
-      .populate("managers", "name email")
-      .populate("borrowers", "name phone");
+      .populate("managers", "name email photo")
+      .populate("borrowers", "name phone photo");
 
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
@@ -24,11 +24,11 @@ export const getAdminProfile = async (req, res) => {
 
 export const updateAdminProfile = async (req, res) => {
   try {
-    const { name, contacts } = req.body;
+    const { name, contacts, photo } = req.body;
 
     const admin = await Admin.findByIdAndUpdate(
       req.user.id,
-      { name, contacts },
+      { name, contacts, photo },
       { new: true, runValidators: true }
     ).select("-password");
 
@@ -73,7 +73,7 @@ export const changeAdminPassword = async (req, res) => {
 
 export const createManager = async (req, res) => {
   try {
-    const { name, email, password, contacts, address } = req.body;
+    const { name, email, password, photo, contacts, address } = req.body;
 
     if (!name || !email || !password || !address) {
       return res.status(400).json({ message: "Name, email, password, and address are required" });
@@ -90,6 +90,7 @@ export const createManager = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      photo,
       contacts: contacts || [],
       address
     });
@@ -120,7 +121,7 @@ export const getAllManagers = async (req, res) => {
   try {
     const managers = await Manager.find()
       .select("-password")
-      .populate("borrowers", "name phone")
+      .populate("borrowers", "name phone photo")
       .populate("loanIssued")
       .sort({ createdAt: -1 });
 
@@ -152,11 +153,12 @@ export const getManagerById = async (req, res) => {
 
 export const updateManager = async (req, res) => {
   try {
-    const { name, email, contacts, address } = req.body;
+    const { name, email, photo, contacts, address } = req.body;
 
     const updateData = {};
     if (name) updateData.name = name;
     if (email) updateData.email = email;
+    if (photo) updateData.photo = photo;
     if (contacts) updateData.contacts = contacts;
     if (address) updateData.address = address;
 

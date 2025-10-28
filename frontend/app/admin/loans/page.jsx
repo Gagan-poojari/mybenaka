@@ -382,9 +382,11 @@ const AdminLoans = () => {
                     {/* Main Info */}
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
+                        {/* <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
                           <CreditCard className="w-6 h-6" />
-                        </div>
+                        </div> */}
+                        <img src={loan.borrower.photo ? loan.borrower.photo : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="borrower" className="w-14 h-14 rounded-full object-cover" />
+
                         <div className="flex gap-5">
                           <div>
                             <div className="flex items-center gap-2">

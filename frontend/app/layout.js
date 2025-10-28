@@ -22,34 +22,11 @@ export const metadata = {
   },
   description:
     "MyBenaka is a smart, secure finance platform that organizations use to track loans, manage payments, and achieve financial clarity. Experience a new era of effortless money management.",
-  keywords: [
-    "MyBenaka",
-    "finance app",
-    "loan management system",
-    "payment tracker",
-    "personal finance",
-    "budget planner",
-    "financial dashboard",
-    "business finance",
-    "expense management",
-  ],
-  authors: [{ name: "MyBenaka Team" }],
-  creator: "MyBenaka",
-  publisher: "MyBenaka",
-  
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",
     apple: "/apple-touch-icon.png",
-  },
-  manifest: "/site.webmanifest",
-  category: "Finance",
-  themeColor: "#f59e0b",
-  viewport:
-    "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
-  alternates: {
-    canonical: "https://mybenaka.in",
-  },
+  }
 };
 
 export default function RootLayout({ children }) {

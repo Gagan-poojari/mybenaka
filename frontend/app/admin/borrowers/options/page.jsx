@@ -113,6 +113,15 @@ const BorrowersOptions = () => {
         });
     };
 
+    const convertToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const fileReader = new FileReader();
+            fileReader.readAsDataURL(file);
+            fileReader.onload = () => resolve(fileReader.result);
+            fileReader.onerror = (error) => reject(error);
+        });
+    };
+
     const handleCreate = async (e) => {
         e.preventDefault();
         setActionLoading(true);
@@ -121,6 +130,21 @@ const BorrowersOptions = () => {
 
         try {
             const token = localStorage.getItem("token");
+
+            let photoBase64 = "";
+            if (formData.photo && typeof formData.photo !== 'string') {
+                photoBase64 = await convertToBase64(formData.photo);
+            } else {
+                photoBase64 = formData.photo;
+            }
+
+            let guardianPhotoBase64 = "";
+            if (formData.guardianPhoto && typeof formData.guardianPhoto !== 'string') {
+                guardianPhotoBase64 = await convertToBase64(formData.guardianPhoto);
+            } else {
+                guardianPhotoBase64 = formData.guardianPhoto;
+            }
+
             const res = await fetch(`${serverUrl}/api/borrowers`, {
                 method: "POST",
                 headers: {
@@ -134,10 +158,10 @@ const BorrowersOptions = () => {
                     panNumber: formData.panNumber,
                     chequeNumber: formData.chequeNumber,
                     // email: formData.email,
-                    photo: formData.photo,
+                    photo: photoBase64,
                     alternatePhone: formData.alternatePhone,
                     guardianName: formData.guardianName,
-                    guardianPhoto: formData.guardianPhoto,
+                    guardianPhoto: guardianPhotoBase64,
                     relationship: formData.relationship,
                     permanentAddress: formData.permanentAddress,
                     temporaryAddress: formData.temporaryAddress,
@@ -169,6 +193,21 @@ const BorrowersOptions = () => {
 
         try {
             const token = localStorage.getItem("token");
+
+            let photoBase64 = "";
+            if (formData.photo && typeof formData.photo !== 'string') {
+                photoBase64 = await convertToBase64(formData.photo);
+            } else {
+                photoBase64 = formData.photo;
+            }
+
+            let guardianPhotoBase64 = "";
+            if (formData.guardianPhoto && typeof formData.guardianPhoto !== 'string') {
+                guardianPhotoBase64 = await convertToBase64(formData.guardianPhoto);
+            } else {
+                photoBase64 = formData.guardianPhoto;
+            }
+
             const res = await fetch(`${serverUrl}/api/borrowers/${selectedBorrower._id}`, {
                 method: "PUT",
                 headers: {
@@ -182,10 +221,10 @@ const BorrowersOptions = () => {
                     panNumber: formData.panNumber,
                     chequeNumber: formData.chequeNumber,
                     // email: formData.email,
-                    photo: formData.photo,
+                    photo: photoBase64,
                     alternatePhone: formData.alternatePhone,
                     guardianName: formData.guardianName,
-                    guardianPhoto: formData.guardianPhoto,
+                    guardianPhoto: guardianPhotoBase64,
                     relationship: formData.relationship,
                     permanentAddress: formData.permanentAddress,
                     temporaryAddress: formData.temporaryAddress,
@@ -388,9 +427,8 @@ const BorrowersOptions = () => {
                                 {/* Header */}
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                                            {borrower.name?.charAt(0).toUpperCase()}
-                                        </div>
+                                        <img src={borrower.photo ? borrower.photo : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="borrower" className="w-14 h-14 rounded-full object-cover" />
+
                                         <div>
                                             <h3 className="font-semibold text-gray-900 text-lg">{borrower.name}</h3>
                                             <p className="text-sm text-gray-500">{borrower.email}</p>

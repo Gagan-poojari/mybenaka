@@ -198,72 +198,6 @@ const ManagerLoans = () => {
           </button>
         </div>
 
-        {/* Stats Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
-                <CreditCard className="w-6 h-6" />
-              </div>
-              <BarChart3 className="w-6 h-6 opacity-70" />
-            </div>
-            <p className="text-sm opacity-90 mb-1">Total Loans</p>
-            <p className="text-3xl font-bold">{stats.totalLoans}</p>
-            <p className="text-xs opacity-75 mt-2">
-              Avg: {formatCurrency(stats.avgLoanSize)}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Disbursed</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(stats.totalLoanAmount)}
-                </p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <IndianRupee className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Interest: {formatCurrency(stats.totalInterest)}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-green-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Collected</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">
-                  {formatCurrency(stats.totalPaid)}
-                </p>
-              </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {stats.collectionRate.toFixed(1)}% collection rate
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-red-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Outstanding</p>
-                <p className="text-2xl font-bold text-red-600 mt-1">
-                  {formatCurrency(stats.totalOutstanding)}
-                </p>
-              </div>
-              <div className="bg-red-100 p-3 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Pending collection</p>
-          </div>
-        </div> */}
-
         {/* Status Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow p-6">
@@ -362,9 +296,8 @@ const ManagerLoans = () => {
                     {/* Main Info */}
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
-                          <CreditCard className="w-6 h-6" />
-                        </div>
+                        <img src={loan.borrower.photo ? loan.borrower.photo : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="borrower" className="w-14 h-14 rounded-full object-cover" />
+
                         <div className="flex gap-5">
                           <div>
                             <div className="flex items-center gap-2">

@@ -517,7 +517,7 @@ export const deleteLoan = async (req, res) => {
 export const getAllLoans = async (req, res) => {
   try {
     const loans = await Loan.find()
-      .populate("borrower", "name phone")
+      .populate("borrower", "name phone photo")
       .sort({ createdAt: -1 });
 
     res.status(200).json({

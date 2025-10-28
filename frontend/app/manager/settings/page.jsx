@@ -38,6 +38,7 @@ const ManagerSettings = () => {
     const [profileData, setProfileData] = useState({
         name: "",
         email: "",
+        photo: "",
         contacts: [],
         managers: [],
         borrowers: [],
@@ -47,6 +48,7 @@ const ManagerSettings = () => {
     const [editProfile, setEditProfile] = useState({
         name: "",
         contacts: "",
+        photo: "",
     });
 
     // Password state
@@ -55,6 +57,15 @@ const ManagerSettings = () => {
         newPassword: "",
         confirmPassword: "",
     });
+
+    const convertToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const fileReader = new FileReader();
+            fileReader.readAsDataURL(file);
+            fileReader.onload = () => resolve(fileReader.result);
+            fileReader.onerror = (error) => reject(error);
+        });
+    };
 
     // Fetch manager profile
     const fetchProfile = useCallback(async () => {
@@ -77,6 +88,7 @@ const ManagerSettings = () => {
             setEditProfile({
                 name: data.name || "",
                 contacts: data.contacts?.join(", ") || "",
+                photo: data.photo || "",
             });
         } catch (err) {
             console.error("Profile fetch error:", err);
@@ -104,6 +116,13 @@ const ManagerSettings = () => {
                 .map(c => c.trim())
                 .filter(c => c);
 
+            let photoBase64 = "";
+            if (editProfile.photo && typeof editProfile.photo !== 'string') {
+                photoBase64 = await convertToBase64(editProfile.photo);
+            } else {
+                photoBase64 = editProfile.photo;
+            }
+
             const res = await fetch(`${serverUrl}/api/manager/profile`, {
                 method: "PUT",
                 headers: {
@@ -113,6 +132,7 @@ const ManagerSettings = () => {
                 body: JSON.stringify({
                     name: editProfile.name,
                     contacts: contactsArray,
+                    photo: photoBase64,
                 }),
             });
 
@@ -225,8 +245,8 @@ const ManagerSettings = () => {
                                         setSuccess(null);
                                     }}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "profile"
-                                            ? "bg-orange-50 text-orange-600"
-                                            : "text-gray-700 hover:bg-gray-50"
+                                        ? "bg-orange-50 text-orange-600"
+                                        : "text-gray-700 hover:bg-gray-50"
                                         }`}
                                 >
                                     <User className="w-5 h-5" />
@@ -240,8 +260,8 @@ const ManagerSettings = () => {
                                         setSuccess(null);
                                     }}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "security"
-                                            ? "bg-orange-50 text-orange-600"
-                                            : "text-gray-700 hover:bg-gray-50"
+                                        ? "bg-orange-50 text-orange-600"
+                                        : "text-gray-700 hover:bg-gray-50"
                                         }`}
                                 >
                                     <Lock className="w-5 h-5" />
@@ -255,8 +275,8 @@ const ManagerSettings = () => {
                                         setSuccess(null);
                                     }}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "stats"
-                                            ? "bg-orange-50 text-orange-600"
-                                            : "text-gray-700 hover:bg-gray-50"
+                                        ? "bg-orange-50 text-orange-600"
+                                        : "text-gray-700 hover:bg-gray-50"
                                         }`}
                                 >
                                     <Shield className="w-5 h-5" />
@@ -291,9 +311,15 @@ const ManagerSettings = () => {
                                 <form onSubmit={handleProfileUpdate} className="p-6 space-y-6">
                                     {/* Avatar Section */}
                                     <div className="flex items-center gap-6">
-                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-                                            {profileData.name?.charAt(0).toUpperCase() || "A"}
-                                        </div>
+                                        {
+                                            profileData.photo ? (
+                                                <img src={profileData.photo ? profileData.photo : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="profileData" className="w-14 h-14 rounded-full object-cover" />
+
+                                            ) : (<div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                                                {profileData.name?.charAt(0).toUpperCase()}
+                                            </div>
+                                            )
+                                        }
                                         <div>
                                             <h3 className="text-lg font-semibold text-gray-900">{profileData.name}</h3>
                                             <p className="text-sm text-gray-500">{profileData.email}</p>
@@ -333,6 +359,21 @@ const ManagerSettings = () => {
                                             />
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                                    </div>
+
+                                    {/* Profile Picture */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Profile Picture
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => setEditProfile({ ...editProfile, photo: e.target.files[0] })}
+                                                className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* Contacts */}
@@ -515,59 +556,6 @@ const ManagerSettings = () => {
                                         )}
                                     </button>
                                 </form>
-                            </div>
-                        )}
-
-                        {/* Statistics Tab */}
-                        {activeTab === "stats" && (
-                            <div className="space-y-6">
-                                <div className="bg-white rounded-xl shadow p-6">
-                                    <h2 className="text-xl font-semibold text-gray-900 mb-6">Account Statistics</h2>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <Users className="w-8 h-8 text-orange-600" />
-                                                <span className="text-3xl font-bold text-orange-600">
-                                                    {profileData.managers?.length || 0}
-                                                </span>
-                                            </div>
-                                            <h3 className="text-lg font-semibold text-gray-900">Managers</h3>
-                                            <p className="text-sm text-gray-600 mt-1">Total managers created</p>
-                                        </div>
-
-                                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <User className="w-8 h-8 text-blue-600" />
-                                                <span className="text-3xl font-bold text-blue-600">
-                                                    {profileData.borrowers?.length || 0}
-                                                </span>
-                                            </div>
-                                            <h3 className="text-lg font-semibold text-gray-900">Borrowers</h3>
-                                            <p className="text-sm text-gray-600 mt-1">Total borrowers added</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Recent Managers */}
-                                {profileData.managers && profileData.managers.length > 0 && (
-                                    <div className="bg-white rounded-xl shadow p-6">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Managers</h3>
-                                        <div className="space-y-3">
-                                            {profileData.managers.slice(0, 5).map((manager) => (
-                                                <div key={manager._id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
-                                                        {manager.name?.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-gray-900">{manager.name}</p>
-                                                        <p className="text-sm text-gray-500">{manager.email}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         )}
                     </div>

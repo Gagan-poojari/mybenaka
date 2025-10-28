@@ -50,9 +50,19 @@ const ManagerOptions = () => {
         name: "",
         email: "",
         password: "",
+        photo: "",
         contacts: "",
         address: "",
     });
+
+    const convertToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const fileReader = new FileReader();
+            fileReader.readAsDataURL(file);
+            fileReader.onload = () => resolve(fileReader.result);
+            fileReader.onerror = (error) => reject(error);
+        });
+    };
 
     const fetchManagers = useCallback(async () => {
         setLoading(true);
@@ -94,6 +104,7 @@ const ManagerOptions = () => {
             name: "",
             email: "",
             password: "",
+            photo: "",
             contacts: "",
             address: "",
         });
@@ -112,6 +123,13 @@ const ManagerOptions = () => {
                 .map(c => c.trim())
                 .filter(c => c);
 
+            let photoBase64 = "";
+            if (formData.photo && typeof formData.photo !== 'string') {
+                photoBase64 = await convertToBase64(formData.photo);
+            } else {
+                photoBase64 = formData.photo;
+            }
+
             const res = await fetch(`${serverUrl}/api/admin/managers`, {
                 method: "POST",
                 headers: {
@@ -122,6 +140,7 @@ const ManagerOptions = () => {
                     name: formData.name,
                     email: formData.email,
                     password: formData.password,
+                    photo: photoBase64,
                     contacts: contactsArray,
                     address: formData.address,
                 }),
@@ -157,6 +176,13 @@ const ManagerOptions = () => {
                 .map(c => c.trim())
                 .filter(c => c);
 
+            let photoBase64 = "";
+            if (formData.photo && typeof formData.photo !== 'string') {
+                photoBase64 = await convertToBase64(formData.photo);
+            } else {
+                photoBase64 = formData.photo;
+            }
+
             const res = await fetch(`${serverUrl}/api/admin/managers/${selectedManager._id}`, {
                 method: "PUT",
                 headers: {
@@ -166,6 +192,7 @@ const ManagerOptions = () => {
                 body: JSON.stringify({
                     name: formData.name,
                     email: formData.email,
+                    photo: photoBase64,
                     contacts: contactsArray,
                     address: formData.address,
                 }),
@@ -249,6 +276,7 @@ const ManagerOptions = () => {
             name: manager.name || "",
             email: manager.email || "",
             password: "",
+            photo: manager.photo || "",
             contacts: manager.contacts?.join(", ") || "",
             address: manager.address || "",
         });
@@ -359,9 +387,15 @@ const ManagerOptions = () => {
                                 {/* Header */}
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                                            {manager.name?.charAt(0).toUpperCase()}
-                                        </div>
+                                        {
+                                            manager.photo ? (
+                                                <img src={manager.photo ? manager.photo : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="manager" className="w-14 h-14 rounded-full object-cover" />
+                                                
+                                                ) : (<div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                                                    {manager.name?.charAt(0).toUpperCase()}
+                                                </div>
+                                            )
+                                        }
                                         <div>
                                             <h3 className="font-semibold text-gray-900 text-lg">{manager.name}</h3>
                                             <p className="text-sm text-gray-500">{manager.email}</p>
@@ -507,6 +541,18 @@ const ManagerOptions = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Profile Picture
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Contact Numbers
                                     </label>
                                     <input
@@ -520,7 +566,7 @@ const ManagerOptions = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Address *
+                                        Address
                                     </label>
                                     <textarea
                                         value={formData.address}
@@ -600,6 +646,18 @@ const ManagerOptions = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Profile Photo
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Contact Numbers
                                     </label>
                                     <input
@@ -612,7 +670,7 @@ const ManagerOptions = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Address *
+                                        Address
                                     </label>
                                     <textarea
                                         value={formData.address}

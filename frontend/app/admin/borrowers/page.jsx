@@ -25,7 +25,7 @@ import Link from "next/link";
 import { authDataContext } from "@/app/contexts/AuthContext";
 
 const AdminBorrowers = () => {
-    const { serverUrl } = useContext(authDataContext);
+  const { serverUrl } = useContext(authDataContext);
   const [borrowersData, setBorrowersData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,7 +51,7 @@ const AdminBorrowers = () => {
         try {
           const json = await res.json();
           if (json?.message) msg = json.message;
-        } catch (e) {}
+        } catch (e) { }
         throw new Error(msg);
       }
 
@@ -113,19 +113,19 @@ const AdminBorrowers = () => {
   };
 
   const filteredBorrowers = borrowersData.filter((borrower) => {
-    const matchesSearch = 
+    const matchesSearch =
       borrower.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       borrower.phone?.includes(searchTerm) ||
       borrower.alternatePhone?.includes(searchTerm) ||
       borrower.guardianName?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     if (filterStatus === "all") return matchesSearch;
-    
+
     const stats = calculateBorrowerStats(borrower);
     if (filterStatus === "active") return matchesSearch && stats.activeLoans > 0;
     if (filterStatus === "inactive") return matchesSearch && stats.activeLoans === 0;
     if (filterStatus === "overdue") return matchesSearch && stats.overdueLoans > 0;
-    
+
     return matchesSearch;
   });
 
@@ -267,41 +267,37 @@ const AdminBorrowers = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => setFilterStatus("all")}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  filterStatus === "all"
-                    ? "bg-orange-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded-lg transition-colors ${filterStatus === "all"
+                  ? "bg-orange-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
               >
                 All
               </button>
               <button
                 onClick={() => setFilterStatus("active")}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  filterStatus === "active"
-                    ? "bg-orange-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded-lg transition-colors ${filterStatus === "active"
+                  ? "bg-orange-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
               >
                 Active
               </button>
               <button
                 onClick={() => setFilterStatus("inactive")}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  filterStatus === "inactive"
-                    ? "bg-orange-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded-lg transition-colors ${filterStatus === "inactive"
+                  ? "bg-orange-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
               >
                 Inactive
               </button>
               <button
                 onClick={() => setFilterStatus("overdue")}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  filterStatus === "overdue"
-                    ? "bg-orange-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded-lg transition-colors ${filterStatus === "overdue"
+                  ? "bg-orange-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
               >
                 Overdue
               </button>
@@ -331,9 +327,9 @@ const AdminBorrowers = () => {
                 <div className="p-6 border-b border-gray-100">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-lg">
-                        {borrower.name?.charAt(0).toUpperCase()}
-                      </div>
+
+                      <img src={borrower.photo ? borrower.photo : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="borrower" className="w-14 h-14 rounded-full object-cover" />
+
                       <div>
                         <h3 className="font-semibold text-gray-900">{borrower.name}</h3>
                         <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -431,7 +427,7 @@ const AdminBorrowers = () => {
                 {selectedBorrower?._id === borrower._id && (
                   <div className="p-6 border-t border-gray-200">
                     <h4 className="font-semibold text-gray-900 mb-4">Borrower Details</h4>
-                    
+
                     {/* Contact Info */}
                     <div className="space-y-3 mb-4">
                       {borrower.alternatePhone && (
@@ -443,7 +439,8 @@ const AdminBorrowers = () => {
                       )}
                       {borrower.guardianName && (
                         <div className="flex items-center gap-2 text-sm">
-                          <Shield className="w-4 h-4 text-gray-400" />
+                          {/* <Shield className="w-4 h-4 text-gray-400" /> */}
+                          <img src={borrower.guardianPhoto ? borrower.guardianPhoto : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="profileData" className="w-10 h-10 rounded-full object-cover" />
                           <span className="text-gray-600">Guardian:</span>
                           <span className="font-medium">{borrower.guardianName}</span>
                           {borrower.relationship && (
@@ -492,13 +489,12 @@ const AdminBorrowers = () => {
                                 <span className="font-semibold text-gray-900">
                                   {formatCurrency(loan.amount)}
                                 </span>
-                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                  loan.status === 'active' 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : loan.status === 'closed'
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${loan.status === 'active'
+                                  ? 'bg-green-100 text-green-700'
+                                  : loan.status === 'closed'
                                     ? 'bg-gray-100 text-gray-700'
                                     : 'bg-red-100 text-red-700'
-                                }`}>
+                                  }`}>
                                   {loan.status}
                                 </span>
                               </div>
