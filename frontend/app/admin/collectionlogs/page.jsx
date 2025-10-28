@@ -469,12 +469,13 @@ const CollectionLogs = () => {
                   {/* Amount Badge */}
                   <div className="flex-shrink-0">
                     <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white shadow-lg">
-                      <div className="text-center">
+                      {/* <div className="text-center">
                         <IndianRupee className="w-6 h-6 mx-auto" />
                         <p className="text-xs font-bold mt-1">
                           {(log.amount / 1000).toFixed(0)}K
                         </p>
-                      </div>
+                      </div> */}
+                      <img src={loan.borrower.photo ? loan.borrower.photo : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="borrower" className="w-14 h-14 rounded-full object-cover" />
                     </div>
                   </div>
 
