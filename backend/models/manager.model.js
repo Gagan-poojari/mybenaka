@@ -14,6 +14,9 @@ const managerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    photo: {
+        type: String,
+    },
     contacts: [String],
     address: {
         type: String,

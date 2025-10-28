@@ -36,9 +36,14 @@ export const addBorrower = async (req, res) => {
     const {
       name,
       phone,
+      aadharNumber,
+      panNumber,
+      chequeNumber,
       email,
+      photo,
       alternatePhone,
       guardianName,
+      guardianPhoto,
       relationship,
       permanentAddress,
       temporaryAddress
@@ -47,9 +52,14 @@ export const addBorrower = async (req, res) => {
     const borrower = await Borrower.create({
       name,
       phone,
+      aadharNumber,
+      panNumber,
+      chequeNumber,
       email,
+      photo,
       alternatePhone,
       guardianName,
+      guardianPhoto,
       relationship,
       permanentAddress,
       temporaryAddress,
@@ -130,8 +140,13 @@ export const updateBorrower = async (req, res) => {
     const {
       name,
       phone,
+      aadharNumber,
+      panNumber,
+      chequeNumber,
+      photo,
       alternatePhone,
       guardianName,
+      guardianPhoto,
       relationship,
       permanentAddress,
       temporaryAddress
@@ -142,6 +157,11 @@ export const updateBorrower = async (req, res) => {
       {
         name,
         phone,
+        aadharNumber,
+        panNumber,
+        chequeNumber,
+        photo,
+        guardianPhoto,
         alternatePhone,
         guardianName,
         relationship,
@@ -298,23 +318,23 @@ export const issueLoan = async (req, res) => {
     // Parse dates correctly
     const start = parseDate(startDate);
     const end = parseDate(dueDate);
-    
+
     console.log("Parsed start date:", start);
     console.log("Parsed end date:", end);
-    
+
     // Validate dates
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
       return res.status(400).json({ message: "Invalid date format" });
     }
-    
+
     if (end <= start) {
       return res.status(400).json({ message: "Due date must be after start date" });
     }
-    
+
     // Calculate loan details
     const interestAmount = (amount * interestRate) / 100;
     const totalDue = amount + interestAmount;
-    
+
     // Calculate duration in months
     const durationInMonths = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24 * 30)));
     const monthlyInstallment = totalDue / durationInMonths;
@@ -334,40 +354,40 @@ export const issueLoan = async (req, res) => {
     const repaymentSchedule = [];
     let currentDate = new Date(start);
     let remainingAmount = totalDue;
-    
+
     for (let i = 0; i < durationInMonths; i++) {
       // Move to next month
       currentDate = new Date(currentDate);
       currentDate.setMonth(currentDate.getMonth() + 1);
-      
+
       // Try to maintain the same day of month
       const targetDay = repaymentDay;
       const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-      
+
       // If target day doesn't exist in this month (e.g., Feb 31), use last day
       if (targetDay > lastDayOfMonth) {
         currentDate.setDate(lastDayOfMonth);
       } else {
         currentDate.setDate(targetDay);
       }
-      
+
       // Don't exceed the due date
       if (currentDate > end) {
         currentDate = new Date(end);
       }
-      
+
       // Calculate installment amount
       const isLastInstallment = (i === durationInMonths - 1) || (currentDate >= end);
       const installmentAmount = isLastInstallment ? remainingAmount : monthlyInstallment;
-      
+
       repaymentSchedule.push({
         dueDate: new Date(currentDate),
         amount: Math.round(installmentAmount * 100) / 100, // Round to 2 decimals
         status: "pending"
       });
-      
+
       remainingAmount -= installmentAmount;
-      
+
       if (currentDate >= end) break;
     }
 
@@ -412,16 +432,16 @@ export const issueLoan = async (req, res) => {
       .populate("borrower", "name phone")
       .populate("issuedBy", "name email");
 
-    res.status(201).json({ 
-      message: "Loan issued successfully", 
-      loan: populatedLoan 
+    res.status(201).json({
+      message: "Loan issued successfully",
+      loan: populatedLoan
     });
 
   } catch (error) {
     console.error("Error issuing loan:", error);
-    res.status(500).json({ 
-      message: "Error issuing loan", 
-      error: error.message 
+    res.status(500).json({
+      message: "Error issuing loan",
+      error: error.message
     });
   }
 };
@@ -435,9 +455,9 @@ export const updateLoan = async (req, res) => {
     }
 
     // Check if user has access to this loan
-    if (req.user.role === "Manager" && loan.issuedBy.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Access denied" });
-    }
+    // if (req.user.role === "Manager" && loan.issuedBy.toString() !== req.user.id) {
+    //   return res.status(403).json({ message: "Access denied" });
+    // }
 
     const { amount, interestRate, dueDate, status } = req.body;
 
@@ -493,6 +513,22 @@ export const deleteLoan = async (req, res) => {
     res.status(500).json({ message: "Error deleting loan", error: error.message });
   }
 };
+
+export const getAllLoans = async (req, res) => {
+  try {
+    const loans = await Loan.find()
+      .populate("borrower", "name phone")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      count: loans.length,
+      loans
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching loans", error: error.message });
+  }
+}
+
 export const getMyLoans = async (req, res) => {
   try {
     const { status } = req.query;
@@ -525,9 +561,9 @@ export const getLoanById = async (req, res) => {
     }
 
     // Check if user has access to this loan
-    if (req.user.role === "Manager" && loan.issuedBy._id.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Access denied" });
-    }
+    // if (req.user.role === "Manager" && loan.issuedBy._id.toString() !== req.user.id) {
+    //   return res.status(403).json({ message: "Access denied" });
+    // }
 
     res.status(200).json(loan);
   } catch (error) {
@@ -552,15 +588,15 @@ export const recordPayment = async (req, res) => {
 
     const totalPaid = loan.payments.reduce((sum, p) => sum + p.amount, 0);
     const totalDue = loan.amount + (loan.amount * loan.interestRate / 100);
-    
+
     if (totalPaid >= totalDue) {
       return res.status(400).json({ message: "Loan is already fully paid" });
     }
 
     // Check if user has access to this loan
-    if (req.user.role === "Manager" && loan.issuedBy.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Access denied" });
-    }
+    // if (req.user.role === "Manager" && loan.issuedBy.toString() !== req.user.id) {
+    //   return res.status(403).json({ message: "Access denied" });
+    // }
 
     const newTotalPaid = totalPaid + amount;
     const currentBalance = totalDue - newTotalPaid;
@@ -578,20 +614,20 @@ export const recordPayment = async (req, res) => {
     // Update repayment schedule - mark installments as paid
     let remainingAmount = amount;
     const paymentDate = new Date(date);
-    
+
     for (let schedule of loan.repaymentSchedule) {
       if (remainingAmount <= 0) break;
-      
+
       if (schedule.status === "pending" || schedule.status === "overdue") {
         const amountToPay = Math.min(remainingAmount, schedule.amount - (schedule.paidAmount || 0));
-        
+
         schedule.paidAmount = (schedule.paidAmount || 0) + amountToPay;
-        
+
         if (schedule.paidAmount >= schedule.amount) {
           schedule.status = "paid";
           schedule.paidDate = paymentDate;
         }
-        
+
         remainingAmount -= amountToPay;
       }
     }
@@ -607,14 +643,14 @@ export const recordPayment = async (req, res) => {
 
     // Log activity
     await Log.create({
-      type: "Collection",          
+      type: "Collection",
       action: "RECORD_PAYMENT",
-      amount,                        
-      loan: loanId,                  
-      borrower: loan.borrower._id,       
-      receivedBy: req.user.id,       
-      receivedByRole: req.user.role, 
-      ownerType: req.user.role,      
+      amount,
+      loan: loanId,
+      borrower: loan.borrower._id,
+      receivedBy: req.user.id,
+      receivedByRole: req.user.role,
+      ownerType: req.user.role,
       ownerId: req.user.id,
       details: `Recorded payment of ₹${amount} for ${loan.borrower.name} (Loan ID: ${loanId})`
     });
@@ -630,6 +666,300 @@ export const recordPayment = async (req, res) => {
   }
 };
 
+export const editRecordedPayment = async (req, res) => {
+  try {
+    const { loanId, paymentId } = req.params;
+    const { newAmount, newDate, reason } = req.body;
+
+    if (!newAmount || newAmount <= 0) {
+      return res.status(400).json({ message: "Invalid payment amount" });
+    }
+
+    const loan = await Loan.findById(loanId).populate("borrower", "name phone");
+
+    if (!loan) {
+      return res.status(404).json({ message: "Loan not found" });
+    }
+
+    // Check if user has access to this loan
+    // if (req.user.role === "Manager" && loan.issuedBy.toString() !== req.user.id) {
+    //   return res.status(403).json({ message: "Access denied" });
+    // }
+
+    // Find the payment in loan.payments array
+    const paymentIndex = loan.payments.findIndex(
+      p => p._id.toString() === paymentId
+    );
+
+    if (paymentIndex === -1) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    const oldPayment = loan.payments[paymentIndex];
+    const oldAmount = oldPayment.amount;
+
+    // Update the payment
+    loan.payments[paymentIndex].amount = newAmount;
+    loan.payments[paymentIndex].date = newDate ? new Date(newDate) : oldPayment.date;
+
+    // Recalculate everything from scratch
+    const sortedPayments = [...loan.payments].sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
+    );
+
+    // Reset
+    let totalPaid = 0;
+    const totalDue = loan.amount + (loan.amount * loan.interestRate / 100);
+
+    // Reset repayment schedule
+    if (loan.repaymentSchedule && loan.repaymentSchedule.length > 0) {
+      loan.repaymentSchedule.forEach(schedule => {
+        schedule.status = "pending";
+        schedule.paidAmount = 0;
+        schedule.paidDate = null;
+      });
+    }
+
+    // Reapply all payments in order
+    for (let payment of sortedPayments) {
+      totalPaid += payment.amount;
+      payment.currentBalance = Math.max(0, totalDue - totalPaid);
+
+      // Update repayment schedule for this payment
+      if (loan.repaymentSchedule && loan.repaymentSchedule.length > 0) {
+        let remainingAmount = payment.amount;
+        const paymentDate = new Date(payment.date);
+
+        for (let schedule of loan.repaymentSchedule) {
+          if (remainingAmount <= 0) break;
+
+          if (schedule.status === "pending" || schedule.status === "overdue") {
+            const amountToPay = Math.min(remainingAmount, schedule.amount - (schedule.paidAmount || 0));
+
+            schedule.paidAmount = (schedule.paidAmount || 0) + amountToPay;
+
+            if (schedule.paidAmount >= schedule.amount) {
+              schedule.status = "paid";
+              schedule.paidDate = paymentDate;
+            }
+
+            remainingAmount -= amountToPay;
+          }
+        }
+      }
+    }
+
+    // Update loan totals
+    loan.amountPaid = totalPaid;
+    const currentBalance = totalDue - totalPaid;
+
+    // Update loan status
+    if (currentBalance <= 0) {
+      loan.status = "closed";
+    } else if (loan.status === "closed") {
+      loan.status = new Date() > new Date(loan.dueDate) ? "overdue" : "active";
+    } else if (loan.status === "overdue" && new Date() <= loan.dueDate) {
+      loan.status = "active";
+    }
+
+    await loan.save();
+
+    // Update the collection log
+    const collectionLog = await Log.findOne({
+      type: "Collection",
+      loan: loanId,
+      amount: oldAmount,
+      timestamp: {
+        $gte: new Date(oldPayment.date).setHours(0, 0, 0, 0),
+        $lte: new Date(oldPayment.date).setHours(23, 59, 59, 999)
+      }
+    });
+
+    if (collectionLog) {
+      collectionLog.amount = newAmount;
+      if (newDate) {
+        collectionLog.timestamp = new Date(newDate);
+      }
+
+      if (!collectionLog.metadata) {
+        collectionLog.metadata = {};
+      }
+      collectionLog.metadata.edited = true;
+      collectionLog.metadata.editedBy = req.user.id;
+      collectionLog.metadata.editedAt = new Date();
+      collectionLog.metadata.originalAmount = oldAmount;
+      collectionLog.metadata.editReason = reason || "Amount correction";
+
+      await collectionLog.save();
+    }
+
+    // Log the edit action
+    await Log.create({
+      type: "Activity",
+      action: "EDIT_PAYMENT",
+      details: `Edited payment for ${loan.borrower.name}: Changed from ₹${oldAmount} to ₹${newAmount} (Loan ID: ${loanId})`,
+      ownerType: req.user.role,
+      ownerId: req.user.id
+    });
+
+    const updatedLoan = await Loan.findById(loanId)
+      .populate("borrower", "name phone")
+      .populate("issuedBy", "name email");
+
+    res.status(200).json({
+      message: "Payment edited successfully",
+      loan: updatedLoan,
+      changes: {
+        oldAmount,
+        newAmount,
+        difference: newAmount - oldAmount
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Error editing payment",
+      error: error.message
+    });
+  }
+};
+
+export const deleteRecordedPayment = async (req, res) => {
+  try {
+    const { loanId, paymentId } = req.params;
+    const { reason } = req.body;
+
+    const loan = await Loan.findById(loanId).populate("borrower", "name phone");
+
+    if (!loan) {
+      return res.status(404).json({ message: "Loan not found" });
+    }
+
+    // Check if user has access to this loan
+    // if (req.user.role === "Manager" && loan.issuedBy.toString() !== req.user.id) {
+    //   return res.status(403).json({ message: "Access denied" });
+    // }
+
+    // Find payment
+    const paymentIndex = loan.payments.findIndex(
+      p => p._id.toString() === paymentId
+    );
+
+    if (paymentIndex === -1) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    const deletedPayment = loan.payments[paymentIndex];
+
+    // Remove payment
+    loan.payments.splice(paymentIndex, 1);
+
+    // Recalculate everything
+    const sortedPayments = [...loan.payments].sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
+    );
+
+    let totalPaid = 0;
+    const totalDue = loan.amount + (loan.amount * loan.interestRate / 100);
+
+    // Reset repayment schedule
+    if (loan.repaymentSchedule && loan.repaymentSchedule.length > 0) {
+      loan.repaymentSchedule.forEach(schedule => {
+        schedule.status = "pending";
+        schedule.paidAmount = 0;
+        schedule.paidDate = null;
+      });
+    }
+
+    // Reapply remaining payments
+    for (let payment of sortedPayments) {
+      totalPaid += payment.amount;
+      payment.currentBalance = Math.max(0, totalDue - totalPaid);
+
+      if (loan.repaymentSchedule && loan.repaymentSchedule.length > 0) {
+        let remainingAmount = payment.amount;
+        const paymentDate = new Date(payment.date);
+
+        for (let schedule of loan.repaymentSchedule) {
+          if (remainingAmount <= 0) break;
+
+          if (schedule.status === "pending" || schedule.status === "overdue") {
+            const amountToPay = Math.min(remainingAmount, schedule.amount - (schedule.paidAmount || 0));
+
+            schedule.paidAmount = (schedule.paidAmount || 0) + amountToPay;
+
+            if (schedule.paidAmount >= schedule.amount) {
+              schedule.status = "paid";
+              schedule.paidDate = paymentDate;
+            }
+
+            remainingAmount -= amountToPay;
+          }
+        }
+      }
+    }
+
+    loan.amountPaid = totalPaid;
+    const currentBalance = totalDue - totalPaid;
+
+    // Update loan status
+    if (currentBalance <= 0) {
+      loan.status = "closed";
+    } else if (loan.status === "closed") {
+      loan.status = new Date() > new Date(loan.dueDate) ? "overdue" : "active";
+    }
+
+    await loan.save();
+
+    // Mark collection log as deleted
+    const collectionLog = await Log.findOne({
+      type: "Collection",
+      loan: loanId,
+      amount: deletedPayment.amount,
+      timestamp: {
+        $gte: new Date(deletedPayment.date).setHours(0, 0, 0, 0),
+        $lte: new Date(deletedPayment.date).setHours(23, 59, 59, 999)
+      }
+    });
+
+    if (collectionLog) {
+      if (!collectionLog.metadata) {
+        collectionLog.metadata = {};
+      }
+      collectionLog.metadata.deleted = true;
+      collectionLog.metadata.deletedBy = req.user.id;
+      collectionLog.metadata.deletedAt = new Date();
+      collectionLog.metadata.deleteReason = reason || "Payment reversal";
+
+      await collectionLog.save();
+    }
+
+    // Log deletion
+    await Log.create({
+      type: "Activity",
+      action: "DELETE_PAYMENT",
+      details: `Deleted payment of ₹${deletedPayment.amount} from ${loan.borrower.name} (Loan ID: ${loanId})`,
+      ownerType: req.user.role,
+      ownerId: req.user.id
+    });
+
+    const updatedLoan = await Loan.findById(loanId)
+      .populate("borrower", "name phone")
+      .populate("issuedBy", "name email");
+
+    res.status(200).json({
+      message: "Payment deleted successfully",
+      loan: updatedLoan
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Error deleting payment",
+      error: error.message
+    });
+  }
+};
+
 export const getPaymentRecords = async (req, res) => {
   try {
     const loan = await Loan.findById(req.params.id)
@@ -642,9 +972,9 @@ export const getPaymentRecords = async (req, res) => {
     }
 
     // Check if user has access to this loan
-    if (req.user.role === "Manager" && loan.issuedBy._id.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Access denied" });
-    }
+    // if (req.user.role === "Manager" && loan.issuedBy._id.toString() !== req.user.id) {
+    //   return res.status(403).json({ message: "Access denied" });
+    // }
 
     res.status(200).json(loan.payments);
   } catch (error) {

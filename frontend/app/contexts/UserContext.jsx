@@ -11,15 +11,20 @@ const UserContext = ({ children }) => {
 
     const getUserData = async () => {
         try {
-            const result = await axios.get(`${serverUrl}/api/auth/user`, 
-                { withCredentials: true }
-            )
-            if (result.data && result.data._id) {
-                setUserData(result.data)
-            } else {
-                setUserData(null)
+            const token = localStorage.getItem('token');
+            const result = await fetch(`${serverUrl}/api/auth/user`, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : undefined,
+                    "Content-Type": "application/json",
+                },
+            })
+            if (!result.ok) {
+                throw new Error(`Failed to fetch user: ${result.status}`);
             }
-            console.log(result.data);
+
+            const data = await result.json();
+            // console.log("User data fetched:", data);
+            setUserData(data);
         } catch (error) {
             console.log("Error getting user data:", error.response?.data || error);
             setUserData(null)

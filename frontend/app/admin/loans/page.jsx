@@ -19,6 +19,7 @@ import {
   XCircle,
   Activity,
   BarChart3,
+  Edit3
 } from "lucide-react";
 import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
 import Link from "next/link";
@@ -518,14 +519,24 @@ const AdminLoans = () => {
                           {loan.payments && loan.payments.length > 0 ? (
                             <div className="space-y-2 max-h-60 overflow-y-auto">
                               {loan.payments.map((payment) => (
-                                <div key={payment._id} className="bg-gray-50 p-3 rounded-lg">
+                                <div key={payment._id} className="bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors">
                                   <div className="flex justify-between items-start mb-1">
                                     <span className="font-semibold text-green-600">
                                       {formatCurrency(payment.amount)}
                                     </span>
-                                    <span className="text-xs text-gray-500">
-                                      {formatDate(payment.date)}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-gray-500">
+                                        {formatDate(payment.date)}
+                                      </span>
+                                      <Link href={`/admin/loans/record-payment/${loan._id}/${payment._id}`}>
+                                        <button
+                                          className="p-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
+                                          title="Edit payment"
+                                        >
+                                          <Edit3 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </Link>
+                                    </div>
                                   </div>
                                   <div className="text-xs text-gray-600">
                                     <div>Balance: {formatCurrency(payment.currentBalance)}</div>

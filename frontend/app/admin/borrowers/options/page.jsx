@@ -47,9 +47,14 @@ const BorrowersOptions = () => {
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
-        email: "",
+        aadharNumber: "",
+        panNumber: "",
+        chequeNumber: "",
+        // email: "",
+        photo: "",
         alternatePhone: "",
         guardianName: "",
+        guardianPhoto: "",
         relationship: "",
         permanentAddress: "",
         temporaryAddress: "",
@@ -94,9 +99,14 @@ const BorrowersOptions = () => {
         setFormData({
             name: "",
             phone: "",
-            email: "",
+            aadharNumber: "",
+            panNumber: "",
+            chequeNumber: "",
+            // email: "",
+            photo: "",
             alternatePhone: "",
             guardianName: "",
+            guardianPhoto: "",
             relationship: "",
             permanentAddress: "",
             temporaryAddress: "",
@@ -119,10 +129,15 @@ const BorrowersOptions = () => {
                 },
                 body: JSON.stringify({
                     name: formData.name,
-                    email: formData.email,
                     phone: formData.phone,
+                    aadharNumber: formData.aadharNumber,
+                    panNumber: formData.panNumber,
+                    chequeNumber: formData.chequeNumber,
+                    // email: formData.email,
+                    photo: formData.photo,
                     alternatePhone: formData.alternatePhone,
                     guardianName: formData.guardianName,
+                    guardianPhoto: formData.guardianPhoto,
                     relationship: formData.relationship,
                     permanentAddress: formData.permanentAddress,
                     temporaryAddress: formData.temporaryAddress,
@@ -162,10 +177,15 @@ const BorrowersOptions = () => {
                 },
                 body: JSON.stringify({
                     name: formData.name,
-                    email: formData.email,
                     phone: formData.phone,
+                    aadharNumber: formData.aadharNumber,
+                    panNumber: formData.panNumber,
+                    chequeNumber: formData.chequeNumber,
+                    // email: formData.email,
+                    photo: formData.photo,
                     alternatePhone: formData.alternatePhone,
                     guardianName: formData.guardianName,
+                    guardianPhoto: formData.guardianPhoto,
                     relationship: formData.relationship,
                     permanentAddress: formData.permanentAddress,
                     temporaryAddress: formData.temporaryAddress,
@@ -248,11 +268,18 @@ const BorrowersOptions = () => {
         setSelectedBorrower(borrower);
         setFormData({
             name: borrower.name || "",
-            email: borrower.email || "",
             phone: borrower.phone || "",
-            address: borrower.address || "",
-            dateOfBirth: borrower.dateOfBirth || "",
-            occupation: borrower.occupation || "",
+            aadharNumber: borrower.aadharNumber || "",
+            panNumber: borrower.panNumber || "",
+            chequeNumber: borrower.chequeNumber || "",
+            // email: borrower.email || "",
+            photo: borrower.photo || "",
+            alternatePhone: borrower.alternatePhone || "",
+            guardianName: borrower.guardianName || "",
+            guardianPhoto: borrower.guardianPhoto || "",
+            relationship: borrower.relationship || "",
+            permanentAddress: borrower.permanentAddress || "",
+            temporaryAddress: borrower.temporaryAddress || "",
         });
         setShowEditModal(true);
         setError(null);
@@ -404,14 +431,14 @@ const BorrowersOptions = () => {
                                 </div>
 
                                 {/* Actions */}
-                                <div className="grid grid-cols-3 gap-2">
-                                    <button
+                                <div className="grid grid-cols-2 gap-2">
+                                    {/* <button
                                         onClick={() => openPortfolioModal(borrower)}
                                         className="flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
                                     >
                                         <Eye className="w-4 h-4" />
                                         View
-                                    </button>
+                                    </button> */}
                                     <button
                                         onClick={() => openEditModal(borrower)}
                                         className="flex items-center justify-center gap-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors text-sm font-medium"
@@ -484,6 +511,47 @@ const BorrowersOptions = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Aadhar Number *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.aadharNumber}
+                                        onChange={(e) => setFormData({ ...formData, aadharNumber: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter Aadhar number"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Pan Number *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.panNumber}
+                                        onChange={(e) => setFormData({ ...formData, panNumber: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter Aadhar number"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Cheque Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.chequeNumber}
+                                        onChange={(e) => setFormData({ ...formData, chequeNumber: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter cheque number"
+                                    />
+                                </div>
+
+                                {/* <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Email
                                     </label>
                                     <input
@@ -492,6 +560,19 @@ const BorrowersOptions = () => {
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="borrower@mybenaka.com"
+                                        required
+                                    />
+                                </div> */}
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Photo
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         required
                                     />
                                 </div>
@@ -520,6 +601,19 @@ const BorrowersOptions = () => {
                                         onChange={(e) => setFormData({ ...formData, guardianName: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter guardian name of the borrower"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Guardian Photo
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setFormData({ ...formData, guardianPhoto: e.target.files[0] })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         required
                                     />
                                 </div>
@@ -636,6 +730,48 @@ const BorrowersOptions = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Aadhar Number *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.aadharNumber}
+                                        onChange={(e) => setFormData({ ...formData, aadharNumber: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter Aadhar number"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        PAN Number *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.panNumber}
+                                        onChange={(e) => setFormData({ ...formData, panNumber: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter PAN number"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Cheque Number *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.chequeNumber}
+                                        onChange={(e) => setFormData({ ...formData, chequeNumber: e.target.value })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Enter cheque number"
+                                        required
+                                    />
+                                </div>
+
+                                {/* <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Email
                                     </label>
                                     <input
@@ -645,6 +781,18 @@ const BorrowersOptions = () => {
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="borrower@mybenaka.com"
                                         required
+                                    />
+                                </div> */}
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Photo
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                     />
                                 </div>
 
@@ -673,6 +821,18 @@ const BorrowersOptions = () => {
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter guardian name of the borrower"
                                         required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Guardian's Photo 
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setFormData({ ...formData, guardianPhoto: e.target.files[0] })}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                     />
                                 </div>
 
@@ -904,10 +1064,10 @@ const BorrowersOptions = () => {
                                                                 </div>
                                                                 <span
                                                                     className={`px-3 py-1 rounded-full text-xs font-medium ${loan.status === "active"
-                                                                            ? "bg-green-100 text-green-700"
-                                                                            : loan.status === "closed"
-                                                                                ? "bg-gray-100 text-gray-700"
-                                                                                : "bg-red-100 text-red-700"
+                                                                        ? "bg-green-100 text-green-700"
+                                                                        : loan.status === "closed"
+                                                                            ? "bg-gray-100 text-gray-700"
+                                                                            : "bg-red-100 text-red-700"
                                                                         }`}
                                                                 >
                                                                     {loan.status}

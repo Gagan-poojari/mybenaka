@@ -14,6 +14,9 @@ const adminSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    photo: {
+        type: String,
+    },
     contacts: [String],
     managers: [{
         type: mongoose.Schema.Types.ObjectId,

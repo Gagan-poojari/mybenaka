@@ -9,13 +9,30 @@ const borrowerSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  aadharNumber: {
+    type: String,
+    required: true
+  },
+  panNumber: {
+    type: String,
+    required: true
+  },
+  chequeNumber: {
+    type: String,
+  },
   email: {
+    type: String,
+  },
+  photo: {
     type: String,
   },
   alternatePhone: {
     type: String,
   },
   guardianName: {
+    type: String,
+  },
+  guardianPhoto: {
     type: String,
   },
   relationship: {
