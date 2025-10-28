@@ -37,5 +37,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 to modify (urls):
 server.js
-Authcontext
 frontend/.env.local
