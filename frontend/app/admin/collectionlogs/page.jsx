@@ -475,7 +475,7 @@ const CollectionLogs = () => {
                           {(log.amount / 1000).toFixed(0)}K
                         </p>
                       </div> */}
-                      <img src={loan.borrower.photo ? loan.borrower.photo : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="borrower" className="w-14 h-14 rounded-full object-cover" />
+                      <img src={log.borrower.photo ? log.borrower.photo : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="borrower" className="w-14 h-14 rounded-full object-cover" />
                     </div>
                   </div>
 
