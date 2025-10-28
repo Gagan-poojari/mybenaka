@@ -19,6 +19,7 @@ import {
   IndianRupee,
   Clock,
   Home,
+  IdCard,
 } from "lucide-react";
 import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
 import Link from "next/link";
@@ -315,222 +316,222 @@ const AdminBorrowers = () => {
         </div>
 
         {/* Borrowers Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-6"> */}
+        <div className="flex flex-col gap-5">
           {filteredBorrowers.map((borrower) => {
             const stats = calculateBorrowerStats(borrower);
             return (
               <div
                 key={borrower._id}
-                className="bg-white rounded-xl shadow hover:shadow-lg transition-shadow border-t-4 border-orange-500"
+                className="bg-white rounded-xl grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 gap-2 shadow hover:shadow-lg transition-shadow border-t-4 border-orange-500"
               >
-                {/* Header */}
-                <div className="p-6 border-b border-gray-100">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-
-                      <img src={borrower.photo ? borrower.photo : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="borrower" className="w-14 h-14 rounded-full object-cover" />
-
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{borrower.name}</h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Phone className="w-3 h-3" />
-                          <span>{borrower.phone}</span>
+                <div>
+                  {/* Header */}
+                  <div className="p-6  border-gray-200 border-r">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={borrower.photo || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"}
+                          alt="borrower"
+                          className="w-14 h-14 rounded-full object-cover border-2 border-gray-200"
+                        />
+                        <div>
+                          <h3 className="font-semibold text-gray-900 text-lg">{borrower.name}</h3>
+                          <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                            <Phone className="w-3.5 h-3.5" />
+                            <span>{borrower.phone}</span>
+                          </div>
                         </div>
                       </div>
+                      {/* <button
+                        onClick={() => setSelectedBorrower(selectedBorrower?._id === borrower._id ? null : borrower)}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        <Eye className="w-5 h-5 text-gray-600" />
+                      </button> */}
                     </div>
-                    <button
-                      onClick={() => setSelectedBorrower(selectedBorrower?._id === borrower._id ? null : borrower)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                      <Eye className="w-5 h-5 text-gray-600" />
-                    </button>
+
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <CreditCard className="w-4 h-4 text-blue-600" />
+                          <span className="text-xs font-medium text-gray-600">Total Loans</span>
+                        </div>
+                        <p className="text-xl font-bold text-gray-900">{stats.totalLoans}</p>
+                      </div>
+
+                      <div className="bg-green-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span className="text-xs font-medium text-gray-600">Active</span>
+                        </div>
+                        <p className="text-xl font-bold text-gray-900">{stats.activeLoans}</p>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Quick Stats */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-blue-50 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <CreditCard className="w-4 h-4 text-blue-600" />
-                        <span className="text-xs text-gray-600">Loans</span>
+                  {/* Financial Summary */}
+                  <div className="p-6 bg-gray-50">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-600">Borrowed:</span>
+                        <span className="font-semibold text-gray-900">
+                          {formatCurrency(stats.totalBorrowed)}
+                        </span>
                       </div>
-                      <p className="text-lg font-bold text-gray-900">{stats.totalLoans}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-600">Repaid:</span>
+                        <span className="font-semibold text-green-600">
+                          {formatCurrency(stats.totalPaid)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-600">Outstanding:</span>
+                        <span className="font-semibold text-red-600">
+                          {formatCurrency(stats.totalOutstanding)}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="bg-green-50 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span className="text-xs text-gray-600">Active</span>
+                    {/* Payment Progress */}
+                    <div className="mt-4">
+                      <div className="flex justify-between text-xs font-medium text-gray-600 mb-2">
+                        <span>Payment Progress</span>
+                        <span>{stats.paymentRate.toFixed(1)}%</span>
                       </div>
-                      <p className="text-lg font-bold text-gray-900">{stats.activeLoans}</p>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className="bg-gradient-to-r from-green-500 to-green-600 h-2.5 rounded-full transition-all"
+                          style={{ width: `${Math.min(stats.paymentRate, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Status Badges */}
+                    <div className="flex gap-2 flex-wrap mt-4">
+                      {stats.activeLoans > 0 && (
+                        <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                          {stats.activeLoans} Active
+                        </span>
+                      )}
+                      {stats.closedLoans > 0 && (
+                        <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+                          {stats.closedLoans} Closed
+                        </span>
+                      )}
+                      {stats.overdueLoans > 0 && (
+                        <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                          {stats.overdueLoans} Overdue
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
-
-                {/* Financial Summary */}
-                <div className="p-6 bg-gray-50">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Borrowed:</span>
-                      <span className="font-semibold text-gray-900">
-                        {formatCurrency(stats.totalBorrowed)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Repaid:</span>
-                      <span className="font-semibold text-green-600">
-                        {formatCurrency(stats.totalPaid)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Outstanding:</span>
-                      <span className="font-semibold text-red-600">
-                        {formatCurrency(stats.totalOutstanding)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Payment Progress */}
-                  <div className="mt-4">
-                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                      <span>Payment Progress</span>
-                      <span className="font-semibold">{stats.paymentRate.toFixed(1)}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all"
-                        style={{ width: `${Math.min(stats.paymentRate, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Status Badges */}
-                  <div className="flex gap-2 flex-wrap mt-4">
-                    {stats.activeLoans > 0 && (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                        {stats.activeLoans} Active
-                      </span>
-                    )}
-                    {stats.closedLoans > 0 && (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                        {stats.closedLoans} Closed
-                      </span>
-                    )}
-                    {stats.overdueLoans > 0 && (
-                      <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">
-                        {stats.overdueLoans} Overdue
-                      </span>
-                    )}
-                  </div>
-                </div>
-
                 {/* Expanded Details */}
-                {selectedBorrower?._id === borrower._id && (
-                  <div className="p-6 border-t border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4">Borrower Details</h4>
+                {/* {selectedBorrower?._id === borrower._id && ( */}
+                <div className="p-6 border-gray-200 border-r">
+                  <h4 className="font-semibold text-gray-900 text-lg mb-4">Borrower Details</h4>
 
-                    {/* Contact Info */}
-                    <div className="space-y-3 mb-4">
+                  {/* Contact Info */}
+                  {(borrower.guardianName || borrower.alternatePhone) && (
+                    <div className="space-y-3 mb-6">
+                      {borrower.guardianName && (
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={borrower.guardianPhoto || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"}
+                            alt="guardian"
+                            className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                          />
+                          <div>
+                            <p className="text-xs font-medium text-gray-500">Guardian</p>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-gray-900">{borrower.guardianName}</span>
+                              {borrower.relationship && (
+                                <span className="text-sm text-gray-500">({borrower.relationship})</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       {borrower.alternatePhone && (
                         <div className="flex items-center gap-2 text-sm">
                           <Phone className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-600">Alt:</span>
-                          <span className="font-medium">{borrower.alternatePhone}</span>
-                        </div>
-                      )}
-                      {borrower.guardianName && (
-                        <div className="flex items-center gap-2 text-sm">
-                          {/* <Shield className="w-4 h-4 text-gray-400" /> */}
-                          <img src={borrower.guardianPhoto ? borrower.guardianPhoto : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="profileData" className="w-10 h-10 rounded-full object-cover" />
-                          <span className="text-gray-600">Guardian:</span>
-                          <span className="font-medium">{borrower.guardianName}</span>
-                          {borrower.relationship && (
-                            <span className="text-gray-500">({borrower.relationship})</span>
-                          )}
+                          <span className="text-gray-600 font-medium">Alternate:</span>
+                          <span className="font-medium text-gray-900">{borrower.alternatePhone}</span>
                         </div>
                       )}
                     </div>
-
-                    {/* Addresses */}
-                    {(borrower.permanentAddress || borrower.temporaryAddress) && (
-                      <div className="space-y-2 mb-4">
-                        {borrower.permanentAddress && (
-                          <div className="bg-gray-50 p-3 rounded-lg">
-                            <div className="flex items-start gap-2">
-                              <Home className="w-4 h-4 text-gray-400 mt-0.5" />
-                              <div>
-                                <p className="text-xs text-gray-500 mb-1">Permanent Address</p>
-                                <p className="text-sm text-gray-700">{borrower.permanentAddress}</p>
-                              </div>
+                  )}
+                  {/* Addresses */}
+                  {(borrower.permanentAddress || borrower.temporaryAddress) && (
+                    <div className="space-y-3 mb-6">
+                      {borrower.permanentAddress && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="flex items-start gap-3">
+                            <Home className="w-4 h-4 text-gray-400 mt-1" />
+                            <div>
+                              <p className="text-xs font-medium text-gray-500 mb-1">Permanent Address</p>
+                              <p className="text-sm text-gray-900">{borrower.permanentAddress}</p>
                             </div>
                           </div>
-                        )}
-                        {borrower.temporaryAddress && (
-                          <div className="bg-gray-50 p-3 rounded-lg">
-                            <div className="flex items-start gap-2">
-                              <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                              <div>
-                                <p className="text-xs text-gray-500 mb-1">Temporary Address</p>
-                                <p className="text-sm text-gray-700">{borrower.temporaryAddress}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Loan History */}
-                    {borrower.loans && borrower.loans.length > 0 && (
-                      <div>
-                        <h5 className="font-semibold text-gray-900 mb-3 text-sm">Loan History</h5>
-                        <div className="space-y-2 max-h-60 overflow-y-auto">
-                          {borrower.loans.map((loan) => (
-                            <div key={loan._id} className="bg-gray-50 p-3 rounded-lg text-sm">
-                              <div className="flex justify-between items-start mb-2">
-                                <span className="font-semibold text-gray-900">
-                                  {formatCurrency(loan.amount)}
-                                </span>
-                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${loan.status === 'active'
-                                  ? 'bg-green-100 text-green-700'
-                                  : loan.status === 'closed'
-                                    ? 'bg-gray-100 text-gray-700'
-                                    : 'bg-red-100 text-red-700'
-                                  }`}>
-                                  {loan.status}
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                                <div>
-                                  <span>Paid:</span>
-                                  <span className="font-medium ml-1">{formatCurrency(loan.amountPaid)}</span>
-                                </div>
-                                <div>
-                                  <span>Outstanding:</span>
-                                  <span className="font-medium ml-1">{formatCurrency(loan.outstanding)}</span>
-                                </div>
-                                <div>
-                                  <span>Interest:</span>
-                                  <span className="font-medium ml-1">{loan.interestRate}%</span>
-                                </div>
-                                <div>
-                                  <span>Payments:</span>
-                                  <span className="font-medium ml-1">{loan.payments?.length || 0}</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {borrower.temporaryAddress && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="flex items-start gap-3">
+                            <MapPin className="w-4 h-4 text-gray-400 mt-1" />
+                            <div>
+                              <p className="text-xs font-medium text-gray-500 mb-1">Temporary Address</p>
+                              <p className="text-sm text-gray-900">{borrower.temporaryAddress}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-                    {/* Meta Info */}
-                    <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
-                      <div className="flex justify-between">
-                        <span>Added by: {borrower.addedByRole}</span>
-                        <span>Joined: {new Date(borrower.createdAt).toLocaleDateString()}</span>
+                <div className="p-6 ">
+                  {/* Document Details */}
+                  {(borrower.aadharNumber || borrower.panNumber || borrower.chequeNumber) && (
+                    <div className="mb-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <IdCard className="w-4 h-4 text-gray-400" />
+                        <span className="font-semibold text-gray-900">Document Details</span>
                       </div>
+                      <div className="space-y-2 pl-6">
+                        {borrower.aadharNumber && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-gray-600 font-medium w-20">Aadhar:</span>
+                            <span className="font-medium text-gray-900">{borrower.aadharNumber}</span>
+                          </div>
+                        )}
+                        {borrower.panNumber && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-gray-600 font-medium w-20">PAN:</span>
+                            <span className="font-medium text-gray-900">{borrower.panNumber}</span>
+                          </div>
+                        )}
+                        {borrower.chequeNumber && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-gray-600 font-medium w-20">Cheque:</span>
+                            <span className="font-medium text-gray-900">{borrower.chequeNumber}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {/* Meta Info */}
+                  <div className="pt-4 border-t border-gray-100 text-xs text-gray-500">
+                    <div className="flex justify-between">
+                      <span>Added by: <span className="font-medium text-gray-600">{borrower.addedByRole}</span></span>
+                      <span>Joined: <span className="font-medium text-gray-600">{new Date(borrower.createdAt).toLocaleDateString()}</span></span>
                     </div>
                   </div>
-                )}
+                </div>
+
+                {/* )} */}
               </div>
             );
           })}
