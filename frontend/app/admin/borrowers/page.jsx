@@ -46,6 +46,7 @@ const AdminBorrowers = () => {
           "Content-Type": "application/json",
         },
       });
+      
 
       if (!res.ok) {
         let msg = `Failed to fetch borrowers data: ${res.status} ${res.statusText}`;

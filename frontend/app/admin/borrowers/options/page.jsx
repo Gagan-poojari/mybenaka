@@ -563,7 +563,7 @@ const BorrowersOptions = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Pan Number *
+                                        Pan Number
                                     </label>
                                     <input
                                         type="text"
@@ -571,7 +571,6 @@ const BorrowersOptions = () => {
                                         onChange={(e) => setFormData({ ...formData, panNumber: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter Aadhar number"
-                                        required
                                     />
                                 </div>
 
@@ -611,7 +610,6 @@ const BorrowersOptions = () => {
                                         accept="image/*"
                                         onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        required
                                     />
                                 </div>
 
@@ -625,7 +623,6 @@ const BorrowersOptions = () => {
                                         onChange={(e) => setFormData({ ...formData, alternatePhone: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter alternate phone number"
-                                        required
                                     />
                                 </div>
 
@@ -639,7 +636,6 @@ const BorrowersOptions = () => {
                                         onChange={(e) => setFormData({ ...formData, guardianName: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter guardian name of the borrower"
-                                        required
                                     />
                                 </div>
 
@@ -652,7 +648,6 @@ const BorrowersOptions = () => {
                                         accept="image/*"
                                         onChange={(e) => setFormData({ ...formData, guardianPhoto: e.target.files[0] })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        required
                                     />
                                 </div>
 
@@ -666,7 +661,6 @@ const BorrowersOptions = () => {
                                         onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter relationship of guardian to the borrower"
-                                        required
                                     />
                                 </div>
 
@@ -680,7 +674,6 @@ const BorrowersOptions = () => {
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter permanent address"
                                         rows="3"
-                                        required
                                     />
                                 </div>
 
@@ -694,7 +687,6 @@ const BorrowersOptions = () => {
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter temporary address"
                                         rows="3"
-                                        required
                                     />
                                 </div>
 
@@ -782,7 +774,7 @@ const BorrowersOptions = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        PAN Number *
+                                        PAN Number
                                     </label>
                                     <input
                                         type="text"
@@ -790,13 +782,12 @@ const BorrowersOptions = () => {
                                         onChange={(e) => setFormData({ ...formData, panNumber: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter PAN number"
-                                        required
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Cheque Number *
+                                        Cheque Number
                                     </label>
                                     <input
                                         type="text"
@@ -804,7 +795,6 @@ const BorrowersOptions = () => {
                                         onChange={(e) => setFormData({ ...formData, chequeNumber: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter cheque number"
-                                        required
                                     />
                                 </div>
 
@@ -844,7 +834,6 @@ const BorrowersOptions = () => {
                                         onChange={(e) => setFormData({ ...formData, alternatePhone: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter alternate phone number"
-                                        required
                                     />
                                 </div>
 
@@ -858,7 +847,6 @@ const BorrowersOptions = () => {
                                         onChange={(e) => setFormData({ ...formData, guardianName: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter guardian name of the borrower"
-                                        required
                                     />
                                 </div>
 
@@ -884,7 +872,6 @@ const BorrowersOptions = () => {
                                         onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter relationship of guardian to the borrower"
-                                        required
                                     />
                                 </div>
 
@@ -898,7 +885,6 @@ const BorrowersOptions = () => {
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter permanent address"
                                         rows="3"
-                                        required
                                     />
                                 </div>
 
@@ -912,7 +898,6 @@ const BorrowersOptions = () => {
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                         placeholder="Enter temporary address"
                                         rows="3"
-                                        required
                                     />
                                 </div>
 

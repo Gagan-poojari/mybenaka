@@ -20,6 +20,11 @@ import {
   getAllLoans,
   editRecordedPayment,
   deleteRecordedPayment,
+  getAllBorrowers,
+  applyMissedPaymentLateFee,
+  applyOverduePenalty,
+  autoApplyLateFees,
+  waiveLateFee,
 //   getLoanHistory,
 //   addLoanNote,
 //   applyLateFee,
@@ -34,7 +39,7 @@ loanRouter.use(isAuth);
 
 // Borrower Routes
 loanRouter.post("/borrowers", addBorrower);
-loanRouter.get("/borrowers", getMyBorrowers);
+loanRouter.get("/borrowers", getAllBorrowers);
 loanRouter.get("/borrowers/:id", getBorrowerById);
 loanRouter.put("/borrowers/:id", updateBorrower);
 loanRouter.delete("/borrowers/:id", deleteBorrower);
@@ -58,6 +63,13 @@ loanRouter.get("/loans/due/today", whoHasToPayToday)
 // Loan Stats
 loanRouter.get("/stats", getMyPortfolioStats);
 loanRouter.get("/overdue-loans", getMyOverdueLoans);
+
+// Late fee routes
+loanRouter.post("/loans/:loanId/late-fee/missed-payment", applyMissedPaymentLateFee);
+loanRouter.post("/loans/:loanId/late-fee/overdue-penalty", applyOverduePenalty);
+loanRouter.post("/late-fees/auto-apply", isAdmin, autoApplyLateFees);
+loanRouter.post("/loans/:loanId/late-fee/:lateFeeId/waive", waiveLateFee);
+
 
 // Loan History & Notes
 // loanRouter.get("/loans/:id/history", getLoanHistory);

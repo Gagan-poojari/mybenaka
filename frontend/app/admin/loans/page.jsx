@@ -19,14 +19,18 @@ import {
   XCircle,
   Activity,
   BarChart3,
-  Edit3
+  Edit3,
+  AlertCircle,
+  DollarSignIcon,
+  ShieldAlert,
+  Gift
 } from "lucide-react";
 import AdminLeftbar from "@/app/components/dashboard/AdminLeftBar";
 import Link from "next/link";
 import { authDataContext } from "@/app/contexts/AuthContext";
 
 const AdminLoans = () => {
-  const { serverUrl } = useContext(authDataContext)
+  const { serverUrl } = useContext(authDataContext);
 
   const [loansData, setLoansData] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -36,6 +40,11 @@ const AdminLoans = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterIssuer, setFilterIssuer] = useState("all");
   const [selectedLoan, setSelectedLoan] = useState(null);
+  const [showLateFeeModal, setShowLateFeeModal] = useState(false);
+  const [lateFeeType, setLateFeeType] = useState(""); // 'missed' or 'overdue'
+  const [selectedLoanForFee, setSelectedLoanForFee] = useState(null);
+  const [feeReason, setFeeReason] = useState("");
+  const [processingFee, setProcessingFee] = useState(false);
 
   const fetchLoansData = useCallback(async () => {
     setLoading(true);
@@ -69,7 +78,7 @@ const AdminLoans = () => {
       setError(err.message || "Unknown error");
       setLoading(false);
     }
-  }, []);
+  }, [serverUrl]);
 
   useEffect(() => {
     fetchLoansData();
@@ -105,11 +114,93 @@ const AdminLoans = () => {
     }
   };
 
+  const handleApplyLateFee = async () => {
+    if (!selectedLoanForFee || !lateFeeType) return;
+
+    setProcessingFee(true);
+    try {
+      const token = localStorage.getItem("token");
+      const endpoint = lateFeeType === "missed"
+        ? `${serverUrl}/api/loans/${selectedLoanForFee._id}/late-fee/missed-payment`
+        : `${serverUrl}/api/loans/${selectedLoanForFee._id}/late-fee/overdue-penalty`;
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reason: feeReason }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to apply late fee");
+      }
+
+      const data = await res.json();
+      alert(data.message || "Late fee applied successfully");
+      
+      // Refresh loans data
+      await fetchLoansData();
+      
+      // Close modal
+      setShowLateFeeModal(false);
+      setSelectedLoanForFee(null);
+      setLateFeeType("");
+      setFeeReason("");
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setProcessingFee(false);
+    }
+  };
+
+  const handleWaiveLateFee = async (loanId, lateFeeId) => {
+    const reason = prompt("Enter reason for waiving this late fee:");
+    if (!reason) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${serverUrl}/api/loans/${loanId}/late-fee/${lateFeeId}/waive`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ reason }),
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to waive late fee");
+      }
+
+      const data = await res.json();
+      alert(data.message || "Late fee waived successfully");
+      
+      // Refresh loans data
+      await fetchLoansData();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const openLateFeeModal = (loan, type) => {
+    setSelectedLoanForFee(loan);
+    setLateFeeType(type);
+    setShowLateFeeModal(true);
+  };
+
   const getOverallStats = () => {
     const totalLoanAmount = loansData.reduce((sum, loan) => sum + (loan.amount || 0), 0);
     const totalPaid = loansData.reduce((sum, loan) => sum + (loan.amountPaid || 0), 0);
     const totalOutstanding = loansData.reduce((sum, loan) => sum + (loan.outstanding || 0), 0);
     const totalInterest = loansData.reduce((sum, loan) => sum + (loan.interestAmount || 0), 0);
+    const totalLateFees = loansData.reduce((sum, loan) => sum + (loan.totalLateFees || 0), 0);
 
     const activeLoans = loansData.filter(l => l.status === "active").length;
     const closedLoans = loansData.filter(l => l.status === "closed").length;
@@ -124,6 +215,7 @@ const AdminLoans = () => {
       totalPaid,
       totalOutstanding,
       totalInterest,
+      totalLateFees,
       activeLoans,
       closedLoans,
       overdueLoans,
@@ -198,74 +290,8 @@ const AdminLoans = () => {
           </button>
         </div>
 
-        {/* Stats Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
-                <CreditCard className="w-6 h-6" />
-              </div>
-              <BarChart3 className="w-6 h-6 opacity-70" />
-            </div>
-            <p className="text-sm opacity-90 mb-1">Total Loans</p>
-            <p className="text-3xl font-bold">{stats.totalLoans}</p>
-            <p className="text-xs opacity-75 mt-2">
-              Avg: {formatCurrency(stats.avgLoanSize)}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Disbursed</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(stats.totalLoanAmount)}
-                </p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <IndianRupee className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Interest: {formatCurrency(stats.totalInterest)}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-green-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Collected</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">
-                  {formatCurrency(stats.totalPaid)}
-                </p>
-              </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {stats.collectionRate.toFixed(1)}% collection rate
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-6 border-l-4 border-red-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Outstanding</p>
-                <p className="text-2xl font-bold text-red-600 mt-1">
-                  {formatCurrency(stats.totalOutstanding)}
-                </p>
-              </div>
-              <div className="bg-red-100 p-3 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Pending collection</p>
-          </div>
-        </div> */}
-
         {/* Status Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-gray-700">Active Loans</h3>
@@ -307,10 +333,20 @@ const AdminLoans = () => {
               />
             </div>
           </div>
+
+          <div className="bg-white rounded-xl shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-gray-700">Total Late Fees</h3>
+              <ShieldAlert className="w-5 h-5 text-orange-600" />
+            </div>
+            <p className="text-3xl font-bold text-orange-600">
+              {formatCurrency(stats.totalLateFees)}
+            </p>
+            <p className="text-xs text-gray-500 mt-2">Unpaid penalties</p>
+          </div>
         </div>
 
         {/* Issue a new loan link cum button */}
-
         <div className="flex w-full justify-center mb-6">
           <Link href="/admin/loans/issueloan">
             <button className="bg-gradient-to-r from-orange-400 to-orange-500 hover:transform hover:scale-105 text-white font-semibold py-2 px-6 rounded-lg cursor-pointer transition duration-300 ease-in-out">
@@ -376,32 +412,48 @@ const AdminLoans = () => {
                 <div
                   key={loan._id}
                   className="p-6 hover:bg-gray-50 transition-colors"
-                  onClick={() => setSelectedLoan(selectedLoan?._id === loan._id ? null : loan)}
                 >
                   <div className="flex items-start justify-between gap-4">
                     {/* Main Info */}
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
-                        {/* <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
-                          <CreditCard className="w-6 h-6" />
-                        </div> */}
-                        <img src={loan.borrower.photo ? loan.borrower.photo : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt="borrower" className="w-14 h-14 rounded-full object-cover" />
+                        <img
+                          src={
+                            loan.borrower.photo
+                              ? loan.borrower.photo
+                              : "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"
+                          }
+                          alt="borrower"
+                          className="w-14 h-14 rounded-full object-cover"
+                        />
 
-                        <div className="flex gap-5">
-                          <div>
+                        <div className="flex gap-5 flex-1">
+                          <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <h3 className="font-semibold text-gray-900">
                                 {loan.borrower?.name || "Unknown Borrower"}
                               </h3>
-                              <span className={`px-2 py-1 text-xs rounded-full font-medium border ${getStatusColor(loan.status)}`}>
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full font-medium border ${getStatusColor(
+                                  loan.status
+                                )}`}
+                              >
                                 {loan.status}
                               </span>
-                              <span className={`px-2 py-1 text-xs rounded-full font-medium ${loan.issuedByRole === 'Admin'
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-purple-100 text-purple-700'
-                                }`}>
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full font-medium ${
+                                  loan.issuedByRole === "Admin"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-purple-100 text-purple-700"
+                                }`}
+                              >
                                 {loan.issuedByRole}
                               </span>
+                              {loan.totalLateFees > 0 && (
+                                <span className="px-2 py-1 text-xs rounded-full font-medium bg-orange-100 text-orange-700 border border-orange-200">
+                                  Late Fees: {formatCurrency(loan.totalLateFees)}
+                                </span>
+                              )}
                             </div>
                             <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
                               <span className="flex items-center gap-1">
@@ -414,16 +466,39 @@ const AdminLoans = () => {
                               </span>
                             </div>
                           </div>
-                          <Link href={`/admin/loans/record-payment/${loan._id}`}>
-                            <button className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-semibold px-4 py-2 rounded-full hover:transform hover:scale-105 transition cursor-pointer">
-                              Record Payment
-                            </button>
-                          </Link>
+                          <div className="flex gap-2">
+                            <Link href={`/admin/loans/record-payment/${loan._id}`}>
+                              <button className="bg-gradient-to-br from-orange-400 to-orange-600 text-white font-semibold px-4 py-2 rounded-full hover:transform hover:scale-105 transition cursor-pointer">
+                                Record Payment
+                              </button>
+                            </Link>
+                            {(loan.status === "active" || loan.status === "overdue") && (
+                              <div className="relative group">
+                                <button className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded-full transition">
+                                  Apply Late Fee
+                                </button>
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden group-hover:block z-10">
+                                  <button
+                                    onClick={() => openLateFeeModal(loan, "missed")}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
+                                  >
+                                    ₹500 - Missed Payment
+                                  </button>
+                                  <button
+                                    onClick={() => openLateFeeModal(loan, "overdue")}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm border-t"
+                                  >
+                                    15% - Overdue Penalty
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
 
                       {/* Financial Grid */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <div className="bg-blue-50 p-3 rounded-lg">
                           <p className="text-xs text-gray-600 mb-1">Loan Amount</p>
                           <p className="text-lg font-bold text-blue-600">
@@ -451,6 +526,13 @@ const AdminLoans = () => {
                             {loan.interestRate}%
                           </p>
                         </div>
+
+                        <div className="bg-orange-50 p-3 rounded-lg">
+                          <p className="text-xs text-gray-600 mb-1">Late Fees</p>
+                          <p className="text-lg font-bold text-orange-600">
+                            {formatCurrency(loan.totalLateFees || 0)}
+                          </p>
+                        </div>
                       </div>
 
                       {/* Progress Bar */}
@@ -464,14 +546,19 @@ const AdminLoans = () => {
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
                             className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all"
-                            style={{ width: `${Math.min((loan.amountPaid / loan.totalDue) * 100, 100)}%` }}
+                            style={{
+                              width: `${Math.min((loan.amountPaid / loan.totalDue) * 100, 100)}%`,
+                            }}
                           />
                         </div>
                       </div>
                     </div>
 
                     {/* View Button */}
-                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button
+                      onClick={() => setSelectedLoan(selectedLoan?._id === loan._id ? null : loan)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
                       <Eye className="w-5 h-5 text-gray-600" />
                     </button>
                   </div>
@@ -498,16 +585,32 @@ const AdminLoans = () => {
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Interest Amount:</span>
-                              <span className="font-medium">{formatCurrency(loan.interestAmount)}</span>
+                              <span className="font-medium">
+                                {formatCurrency(loan.interestAmount)}
+                              </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Late Fees:</span>
-                              <span className="font-medium">{formatCurrency(loan.totalLateFees)}</span>
+                              <span className="font-medium text-orange-600">
+                                {formatCurrency(loan.totalLateFees)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Waivers:</span>
+                              <span className="font-medium text-green-600">
+                                {formatCurrency(loan.totalWaivers || 0)}
+                              </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Disbursed:</span>
-                              <span className={`font-medium ${loan.disbursement?.isDisbursed ? 'text-green-600' : 'text-gray-600'}`}>
-                                {loan.disbursement?.isDisbursed ? 'Yes' : 'No'}
+                              <span
+                                className={`font-medium ${
+                                  loan.disbursement?.isDisbursed
+                                    ? "text-green-600"
+                                    : "text-gray-600"
+                                }`}
+                              >
+                                {loan.disbursement?.isDisbursed ? "Yes" : "No"}
                               </span>
                             </div>
                           </div>
@@ -521,7 +624,10 @@ const AdminLoans = () => {
                           {loan.payments && loan.payments.length > 0 ? (
                             <div className="space-y-2 max-h-60 overflow-y-auto">
                               {loan.payments.map((payment) => (
-                                <div key={payment._id} className="bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div
+                                  key={payment._id}
+                                  className="bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                                >
                                   <div className="flex justify-between items-start mb-1">
                                     <span className="font-semibold text-green-600">
                                       {formatCurrency(payment.amount)}
@@ -530,7 +636,9 @@ const AdminLoans = () => {
                                       <span className="text-xs text-gray-500">
                                         {formatDate(payment.date)}
                                       </span>
-                                      <Link href={`/admin/loans/record-payment/${loan._id}/${payment._id}`}>
+                                      <Link
+                                        href={`/admin/loans/record-payment/${loan._id}/${payment._id}`}
+                                      >
                                         <button
                                           className="p-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
                                           title="Edit payment"
@@ -548,10 +656,112 @@ const AdminLoans = () => {
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-500 italic">No payments recorded yet</p>
+                            <p className="text-sm text-gray-500 italic">
+                              No payments recorded yet
+                            </p>
                           )}
                         </div>
                       </div>
+
+                      {/* Late Fees Section */}
+                      {loan.lateFees && loan.lateFees.length > 0 && (
+                        <div className="mt-6 pt-4 border-t border-gray-100">
+                          <h4 className="font-semibold text-gray-900 mb-3">
+                            Late Fees ({loan.lateFees.length})
+                          </h4>
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {loan.lateFees.map((fee) => (
+                              <div
+                                key={fee._id}
+                                className={`p-3 rounded-lg border ${
+                                  fee.isPaid
+                                    ? "bg-gray-50 border-gray-200"
+                                    : "bg-orange-50 border-orange-200"
+                                }`}
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span
+                                        className={`font-semibold ${
+                                          fee.isPaid ? "text-gray-600" : "text-orange-600"
+                                        }`}
+                                      >
+                                        {formatCurrency(fee.amount)}
+                                      </span>
+                                      {fee.isPaid && (
+                                        <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded">
+                                          Paid/Waived
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-gray-600 mb-1">{fee.reason}</p>
+                                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                                      <span>
+                                        Applied: {formatDate(fee.appliedDate)}
+                                      </span>
+                                      {fee.daysOverdue && (
+                                        <span className="text-red-600">
+                                          {fee.daysOverdue} days overdue
+                                        </span>
+                                      )}
+                                      <span>By: {fee.appliedByRole || "System"}</span>
+                                    </div>
+                                  </div>
+                                  {!fee.isPaid && (
+                                    <button
+                                      onClick={() => handleWaiveLateFee(loan._id, fee._id)}
+                                      className="ml-2 p-1.5 bg-green-500 hover:bg-green-600 text-white rounded transition-colors"
+                                      title="Waive this late fee"
+                                    >
+                                      <Gift className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Waivers Section */}
+                      {loan.waivers && loan.waivers.length > 0 && (
+                        <div className="mt-6 pt-4 border-t border-gray-100">
+                          <h4 className="font-semibold text-gray-900 mb-3">
+                            Waivers ({loan.waivers.length})
+                          </h4>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {loan.waivers.map((waiver) => (
+                              <div
+                                key={waiver._id}
+                                className="bg-green-50 p-3 rounded-lg border border-green-200"
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="font-semibold text-green-600">
+                                        {formatCurrency(waiver.amount)}
+                                      </span>
+                                      <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded">
+                                        {waiver.type.replace(/_/g, " ")}
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-gray-600 mb-1">
+                                      {waiver.reason}
+                                    </p>
+                                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                                      <span>
+                                        Granted: {formatDate(waiver.grantedDate)}
+                                      </span>
+                                      <span>By: {waiver.grantedByRole}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Meta Info */}
                       <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-500">
@@ -568,6 +778,98 @@ const AdminLoans = () => {
           )}
         </div>
       </div>
+
+      {/* Late Fee Modal */}
+      {showLateFeeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">
+                Apply Late Fee
+              </h3>
+              <button
+                onClick={() => {
+                  setShowLateFeeModal(false);
+                  setSelectedLoanForFee(null);
+                  setLateFeeType("");
+                  setFeeReason("");
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                <p className="text-sm text-gray-600 mb-1">Borrower</p>
+                <p className="font-semibold text-gray-900">
+                  {selectedLoanForFee?.borrower?.name}
+                </p>
+                <p className="text-sm text-gray-600 mt-2">Outstanding</p>
+                <p className="font-semibold text-red-600">
+                  {formatCurrency(selectedLoanForFee?.outstanding)}
+                </p>
+              </div>
+
+              <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg mb-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-orange-900 mb-1">
+                      {lateFeeType === "missed"
+                        ? "₹500 Missed Payment Fee"
+                        : "15% Overdue Penalty"}
+                    </p>
+                    <p className="text-sm text-orange-700">
+                      {lateFeeType === "missed"
+                        ? "Applied when borrower misses a scheduled repayment"
+                        : `15% of outstanding amount: ${formatCurrency(
+                            (selectedLoanForFee?.outstanding || 0) * 0.15
+                          )}`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason (Optional)
+                </label>
+                <textarea
+                  value={feeReason}
+                  onChange={(e) => setFeeReason(e.target.value)}
+                  placeholder="Enter reason for applying this late fee..."
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  rows="3"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowLateFeeModal(false);
+                  setSelectedLoanForFee(null);
+                  setLateFeeType("");
+                  setFeeReason("");
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={processingFee}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleApplyLateFee}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={processingFee}
+              >
+                {processingFee ? "Applying..." : "Apply Late Fee"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

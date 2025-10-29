@@ -12,7 +12,7 @@ import logsRouter from "./routes/log.route.js";
 
 // Utils 
 import { seedAdmin } from "./utils/seedAdmin.js";
-import { startOverdueLoanChecker } from "./utils/cronJobs.js";
+import { startLateFeesCronJob } from "./utils/cronJobs.js";
 
 
 dotenv.config();
@@ -78,7 +78,7 @@ mongoose
     await seedAdmin();
     
     // Start cron jobs
-    startOverdueLoanChecker();
+    startLateFeesCronJob();
     
     // Start server
     app.listen(PORT, () => {

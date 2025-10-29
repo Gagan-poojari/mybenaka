@@ -15,7 +15,6 @@ const borrowerSchema = new mongoose.Schema({
   },
   panNumber: {
     type: String,
-    required: true
   },
   chequeNumber: {
     type: String,

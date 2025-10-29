@@ -15,17 +15,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  metadataBase: new URL("https://mybenaka.com"), // change if hosted elsewhere
+  metadataBase: new URL("https://nammabenaka.com"), // change if hosted elsewhere
   title: {
-    default: "MyBenaka - Simplify Your Finances",
-    template: "%s | MyBenaka",
+    default: "NammaBenaka - Simplify Your Finances",
+    template: "%s | NammaBenaka",
   },
   description:
-    "MyBenaka is a smart, secure finance platform that organizations use to track loans, manage payments, and achieve financial clarity. Experience a new era of effortless money management.",
+    "NammaBenaka is a smart, secure finance platform that organizations use to track loans, manage payments, and achieve financial clarity. Experience a new era of effortless money management.",
   icons: {
     icon: "/favicon.png",
-    shortcut: "/favicon.png",
-    apple: "/apple-touch-icon.png",
   }
 };
 

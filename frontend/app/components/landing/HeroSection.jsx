@@ -7,7 +7,7 @@ export default function HeroSection() {
   return (
     <section className="relative min-h-screen flex flex-col justify-center items-center text-center bg-gradient-to-br from-[#0d0d0d] via-[#1a1a1a] to-[#0d0d0d] text-white px-6">
       <Link href="/" className="text-2xl font-extrabold text-white tracking-tight fixed top-7 left-9">
-        <span className="text-[#ff6a00]">My</span>Benaka
+        <span className="text-[#ff6a00]">Namma</span>Benaka
       </Link>
       <motion.h1
         initial={{ opacity: 0, y: 40 }}
@@ -25,7 +25,7 @@ export default function HeroSection() {
         transition={{ delay: 0.3 }}
         className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl"
       >
-        MyBenaka helps individuals and businesses get the right financial support —
+        NammaBenaka helps individuals and businesses get the right financial support —
         fast, transparent, and tailored to your needs.
       </motion.p>
 
@@ -46,7 +46,7 @@ export default function HeroSection() {
       </motion.div>
 
       <div className="absolute bottom-6 text-gray-500 text-sm">
-        © {new Date().getFullYear()} MyBenaka.in • All Rights Reserved
+        © {new Date().getFullYear()} NammaBenaka.in • All Rights Reserved
       </div>
     </section>
   )

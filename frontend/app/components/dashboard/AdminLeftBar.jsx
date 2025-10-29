@@ -104,7 +104,7 @@ const AdminLeftbar = () => {
                             {open && (
                                 <div>
                                     <div className="flex items-center font-semibold">
-                                        <span className="text-orange-600">My</span><span className="text-slate-900">Benaka</span>
+                                        <span className="text-orange-600">Namma</span><span className="text-slate-900">Benaka</span>
                                     </div>
                                     <div className="text-xs text-slate-500">Dashboard</div>
                                 </div>
@@ -160,7 +160,7 @@ const AdminLeftbar = () => {
                                 </div>
                                 <div>
                                     <div className="text-sm font-semibold text-slate-900">Super Admin</div>
-                                    <div className="text-xs text-slate-400">admin@mybenaka.com</div>
+                                    <div className="text-xs text-slate-400">admin@nammabenaka.com</div>
                                 </div>
                             </div>
                         </div>
@@ -241,7 +241,7 @@ const AdminLeftbar = () => {
                                             </div>
                                             <div>
                                                 <div className="text-sm font-semibold text-slate-900">Super Admin</div>
-                                                <div className="text-xs text-slate-400">admin@mybenaka.com</div>
+                                                <div className="text-xs text-slate-400">admin@nammabenaka.com</div>
                                             </div>
                                         </div>
                                     </div>

@@ -98,7 +98,7 @@ const ManagerLeftbar = () => {
                             {open && (
                                 <div>
                                     <div className="flex items-center font-semibold">
-                                        <span className="text-orange-600">My</span><span className="text-slate-900">Benaka</span>
+                                        <span className="text-orange-600">Namma</span><span className="text-slate-900">Benaka</span>
                                     </div>
                                     <div className="text-xs text-slate-500">Premium Dashboard</div>
                                 </div>
