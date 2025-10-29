@@ -570,7 +570,7 @@ const BorrowersOptions = () => {
                                         value={formData.panNumber}
                                         onChange={(e) => setFormData({ ...formData, panNumber: e.target.value })}
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        placeholder="Enter Aadhar number"
+                                        placeholder="Enter PAN number"
                                     />
                                 </div>
 
