@@ -334,9 +334,21 @@ const ManagerLoans = () => {
                       </div>
 
                       {/* Financial Grid */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                        <div className="bg-indigo-50 p-3 rounded-lg border-2 border-indigo-200">
+                          <p className="text-xs text-gray-600 mb-1 flex items-center gap-1">
+                            Total Amount
+                          </p>
+                          <p className="text-lg font-bold text-indigo-600">
+                            {formatCurrency(loan.totalDue)}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            With all charges
+                          </p>
+                        </div>
+
                         <div className="bg-blue-50 p-3 rounded-lg">
-                          <p className="text-xs text-gray-600 mb-1">Loan Amount</p>
+                          <p className="text-xs text-gray-600 mb-1">Principal</p>
                           <p className="text-lg font-bold text-blue-600">
                             {formatCurrency(loan.amount)}
                           </p>
@@ -358,8 +370,15 @@ const ManagerLoans = () => {
 
                         <div className="bg-purple-50 p-3 rounded-lg">
                           <p className="text-xs text-gray-600 mb-1">Interest</p>
-                          <p className="text-lg font-bold text-purple-600">
-                            {loan.interestRate}%
+                          <p className="text-sm font-bold text-purple-600">
+                            {loan.interestRate}% = {formatCurrency(loan.interestAmount)}
+                          </p>
+                        </div>
+
+                        <div className="bg-orange-50 p-3 rounded-lg">
+                          <p className="text-xs text-gray-600 mb-1">Late Fees</p>
+                          <p className="text-lg font-bold text-orange-600">
+                            {formatCurrency(loan.totalLateFees || 0)}
                           </p>
                         </div>
                       </div>
