@@ -46,7 +46,7 @@ const AdminBorrowers = () => {
           "Content-Type": "application/json",
         },
       });
-      
+
 
       if (!res.ok) {
         let msg = `Failed to fetch borrowers data: ${res.status} ${res.statusText}`;
@@ -502,9 +502,15 @@ const AdminBorrowers = () => {
                         <span className="font-semibold text-gray-900">Document Details</span>
                       </div>
                       <div className="space-y-2 pl-6">
+                        {borrower.accountNumber && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-gray-600 font-medium w-20">Account No:</span>
+                            <span className="font-medium text-gray-900">{borrower.accountNumber}</span>
+                          </div>
+                        )}
                         {borrower.aadharNumber && (
                           <div className="flex items-center gap-2 text-sm">
-                            <span className="text-gray-600 font-medium w-20">Aadhar:</span>
+                            <span className="text-gray-600 font-medium w-20">Aadhar No:</span>
                             <span className="font-medium text-gray-900">{borrower.aadharNumber}</span>
                           </div>
                         )}

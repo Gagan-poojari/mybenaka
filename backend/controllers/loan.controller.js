@@ -77,7 +77,7 @@ export const addBorrower = async (req, res) => {
     await Log.create({
       type: "Activity",
       action: "ADD_BORROWER",
-      details: `Added borrower: ${name} (${phone})`,
+      details: `Added borrower: ${name} (${phone}) - Account Number: ${borrower.accountNumber}`,
       ownerType: req.user.role,
       ownerId: req.user.id
     });
@@ -330,8 +330,6 @@ export const issueLoan = async (req, res) => {
       if (currentDate >= end) break;
     }
 
-    console.log("Repayment schedule:", repaymentSchedule);
-
     // Create loan
     const loan = await Loan.create({
       borrower: borrowerId,
@@ -523,8 +521,13 @@ export const recordPayment = async (req, res) => {
       return res.status(404).json({ message: "Loan not found" });
     }
 
+    // Calculate total due INCLUDING late fees and waivers
+    const interestAmount = loan.amount * loan.interestRate / 100;
+    const lateFeeTotal = loan.lateFees?.reduce((sum, fee) => sum + (fee.isPaid ? 0 : fee.amount), 0) || 0;
+    const waiverTotal = loan.waivers?.reduce((sum, waiver) => sum + waiver.amount, 0) || 0;
+    const totalDue = loan.amount + interestAmount + lateFeeTotal - waiverTotal;
+
     const totalPaid = loan.payments.reduce((sum, p) => sum + p.amount, 0);
-    const totalDue = loan.amount + (loan.amount * loan.interestRate / 100);
 
     if (totalPaid >= totalDue) {
       return res.status(400).json({ message: "Loan is already fully paid" });
@@ -548,10 +551,27 @@ export const recordPayment = async (req, res) => {
       receivedByRole: req.user.role
     });
 
-    // Update repayment schedule - mark installments as paid
+    // Allocate payment: First to late fees, then to installments
     let remainingAmount = amount;
     const paymentDate = new Date(date);
 
+    // 1. Pay off unpaid late fees first
+    for (let lateFee of loan.lateFees) {
+      if (remainingAmount <= 0) break;
+      
+      if (!lateFee.isPaid) {
+        const amountToPayToFee = Math.min(remainingAmount, lateFee.amount);
+        
+        if (amountToPayToFee >= lateFee.amount) {
+          lateFee.isPaid = true;
+          lateFee.paidDate = paymentDate;
+        }
+        
+        remainingAmount -= amountToPayToFee;
+      }
+    }
+
+    // 2. Then pay installments
     for (let schedule of loan.repaymentSchedule) {
       if (remainingAmount <= 0) break;
 
@@ -589,7 +609,7 @@ export const recordPayment = async (req, res) => {
       receivedByRole: req.user.role,
       ownerType: req.user.role,
       ownerId: req.user.id,
-      details: `Recorded payment of ₹${amount} for ${loan.borrower.name} (Loan ID: ${loanId})`
+      details: `Recorded payment of ₹${amount} for ${loan.borrower.name} (Loan ID: ${loanId}). Remaining balance: ₹${currentBalance.toFixed(2)}`
     });
 
     const updatedLoan = await Loan.findById(loanId)
@@ -602,6 +622,7 @@ export const recordPayment = async (req, res) => {
     res.status(500).json({ message: "Error recording payment", error: error.message });
   }
 };
+
 
 export const editRecordedPayment = async (req, res) => {
   try {
@@ -644,9 +665,14 @@ export const editRecordedPayment = async (req, res) => {
       (a, b) => new Date(a.date) - new Date(b.date)
     );
 
+    // Calculate total due INCLUDING late fees and waivers
+    const interestAmount = loan.amount * loan.interestRate / 100;
+    const lateFeeTotal = loan.lateFees?.reduce((sum, fee) => sum + (fee.isPaid ? 0 : fee.amount), 0) || 0;
+    const waiverTotal = loan.waivers?.reduce((sum, waiver) => sum + waiver.amount, 0) || 0;
+    const totalDue = loan.amount + interestAmount + lateFeeTotal - waiverTotal;
+
     // Reset
     let totalPaid = 0;
-    const totalDue = loan.amount + (loan.amount * loan.interestRate / 100);
 
     // Reset repayment schedule
     if (loan.repaymentSchedule && loan.repaymentSchedule.length > 0) {
@@ -657,16 +683,41 @@ export const editRecordedPayment = async (req, res) => {
       });
     }
 
+    // Reset late fees
+    if (loan.lateFees && loan.lateFees.length > 0) {
+      loan.lateFees.forEach(fee => {
+        fee.isPaid = false;
+        fee.paidDate = null;
+      });
+    }
+
     // Reapply all payments in order
     for (let payment of sortedPayments) {
       totalPaid += payment.amount;
       payment.currentBalance = Math.max(0, totalDue - totalPaid);
 
-      // Update repayment schedule for this payment
-      if (loan.repaymentSchedule && loan.repaymentSchedule.length > 0) {
-        let remainingAmount = payment.amount;
-        const paymentDate = new Date(payment.date);
+      // Allocate this payment: First to late fees, then to installments
+      let remainingAmount = payment.amount;
+      const paymentDate = new Date(payment.date);
 
+      // 1. Pay off unpaid late fees first
+      for (let lateFee of loan.lateFees) {
+        if (remainingAmount <= 0) break;
+        
+        if (!lateFee.isPaid) {
+          const amountToPayToFee = Math.min(remainingAmount, lateFee.amount);
+          
+          if (amountToPayToFee >= lateFee.amount) {
+            lateFee.isPaid = true;
+            lateFee.paidDate = paymentDate;
+          }
+          
+          remainingAmount -= amountToPayToFee;
+        }
+      }
+
+      // 2. Then pay installments
+      if (loan.repaymentSchedule && loan.repaymentSchedule.length > 0) {
         for (let schedule of loan.repaymentSchedule) {
           if (remainingAmount <= 0) break;
 
@@ -734,7 +785,7 @@ export const editRecordedPayment = async (req, res) => {
     await Log.create({
       type: "Activity",
       action: "EDIT_PAYMENT",
-      details: `Edited payment for ${loan.borrower.name}: Changed from ₹${oldAmount} to ₹${newAmount} (Loan ID: ${loanId})`,
+      details: `Edited payment for ${loan.borrower.name}: Changed from ₹${oldAmount} to ₹${newAmount} (Loan ID: ${loanId}). New balance: ₹${currentBalance.toFixed(2)}`,
       ownerType: req.user.role,
       ownerId: req.user.id
     });
@@ -749,7 +800,8 @@ export const editRecordedPayment = async (req, res) => {
       changes: {
         oldAmount,
         newAmount,
-        difference: newAmount - oldAmount
+        difference: newAmount - oldAmount,
+        newBalance: currentBalance
       }
     });
 
@@ -760,6 +812,7 @@ export const editRecordedPayment = async (req, res) => {
     });
   }
 };
+
 
 export const deleteRecordedPayment = async (req, res) => {
   try {
@@ -1207,7 +1260,7 @@ export const applyOverduePenalty = async (req, res) => {
       return res.status(400).json({ message: "Loan is not yet overdue" });
     }
 
-    // Calculate outstanding amount
+    // Calculate  amount
     const totalDue = loan.amount + (loan.amount * loan.interestRate / 100);
     const totalPaid = loan.amountPaid || 0;
     const outstandingAmount = totalDue - totalPaid;

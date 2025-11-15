@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import AccountNo from "../models/accountno.model.js";
 
 const borrowerSchema = new mongoose.Schema({
   name: {
@@ -18,6 +19,9 @@ const borrowerSchema = new mongoose.Schema({
   },
   chequeNumber: {
     type: String,
+  },
+  accountNumber: {
+    type: Number,
   },
   email: {
     type: String,
@@ -56,5 +60,24 @@ const borrowerSchema = new mongoose.Schema({
     ref: "Loan"
   }]
 }, { timestamps: true });
+
+// Pre-save middleware to auto-increment accountNumber
+borrowerSchema.pre('save', async function(next) {
+  if (this.isNew) {
+    try {
+      const accountno = await AccountNo.findByIdAndUpdate(
+        { _id: 'borrower_account_number' },
+        { $inc: { sequence_value: 1 } },
+        { new: true, upsert: true }
+      );
+      this.accountNumber = accountno.sequence_value;
+      next();
+    } catch (error) {
+      next(error);
+    }
+  } else {
+    next();
+  }
+});
 
 export default mongoose.model("Borrower", borrowerSchema);

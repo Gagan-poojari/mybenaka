@@ -140,10 +140,10 @@ const AdminLoans = () => {
 
       const data = await res.json();
       alert(data.message || "Late fee applied successfully");
-      
+
       // Refresh loans data
       await fetchLoansData();
-      
+
       // Close modal
       setShowLateFeeModal(false);
       setSelectedLoanForFee(null);
@@ -181,7 +181,7 @@ const AdminLoans = () => {
 
       const data = await res.json();
       alert(data.message || "Late fee waived successfully");
-      
+
       // Refresh loans data
       await fetchLoansData();
     } catch (err) {
@@ -441,11 +441,10 @@ const AdminLoans = () => {
                                 {loan.status}
                               </span>
                               <span
-                                className={`px-2 py-1 text-xs rounded-full font-medium ${
-                                  loan.issuedByRole === "Admin"
+                                className={`px-2 py-1 text-xs rounded-full font-medium ${loan.issuedByRole === "Admin"
                                     ? "bg-blue-100 text-blue-700"
                                     : "bg-purple-100 text-purple-700"
-                                }`}
+                                  }`}
                               >
                                 {loan.issuedByRole}
                               </span>
@@ -498,9 +497,21 @@ const AdminLoans = () => {
                       </div>
 
                       {/* Financial Grid */}
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                        <div className="bg-indigo-50 p-3 rounded-lg border-2 border-indigo-200">
+                          <p className="text-xs text-gray-600 mb-1 flex items-center gap-1">
+                            Total Amount
+                          </p>
+                          <p className="text-lg font-bold text-indigo-600">
+                            {formatCurrency(loan.totalDue)}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            With all charges
+                          </p>
+                        </div>
+
                         <div className="bg-blue-50 p-3 rounded-lg">
-                          <p className="text-xs text-gray-600 mb-1">Loan Amount</p>
+                          <p className="text-xs text-gray-600 mb-1">Principal</p>
                           <p className="text-lg font-bold text-blue-600">
                             {formatCurrency(loan.amount)}
                           </p>
@@ -522,8 +533,8 @@ const AdminLoans = () => {
 
                         <div className="bg-purple-50 p-3 rounded-lg">
                           <p className="text-xs text-gray-600 mb-1">Interest</p>
-                          <p className="text-lg font-bold text-purple-600">
-                            {loan.interestRate}%
+                          <p className="text-sm font-bold text-purple-600">
+                            {loan.interestRate}% = {formatCurrency(loan.interestAmount)}
                           </p>
                         </div>
 
@@ -604,11 +615,10 @@ const AdminLoans = () => {
                             <div className="flex justify-between">
                               <span className="text-gray-600">Disbursed:</span>
                               <span
-                                className={`font-medium ${
-                                  loan.disbursement?.isDisbursed
+                                className={`font-medium ${loan.disbursement?.isDisbursed
                                     ? "text-green-600"
                                     : "text-gray-600"
-                                }`}
+                                  }`}
                               >
                                 {loan.disbursement?.isDisbursed ? "Yes" : "No"}
                               </span>
@@ -673,19 +683,17 @@ const AdminLoans = () => {
                             {loan.lateFees.map((fee) => (
                               <div
                                 key={fee._id}
-                                className={`p-3 rounded-lg border ${
-                                  fee.isPaid
+                                className={`p-3 rounded-lg border ${fee.isPaid
                                     ? "bg-gray-50 border-gray-200"
                                     : "bg-orange-50 border-orange-200"
-                                }`}
+                                  }`}
                               >
                                 <div className="flex justify-between items-start">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
                                       <span
-                                        className={`font-semibold ${
-                                          fee.isPaid ? "text-gray-600" : "text-orange-600"
-                                        }`}
+                                        className={`font-semibold ${fee.isPaid ? "text-gray-600" : "text-orange-600"
+                                          }`}
                                       >
                                         {formatCurrency(fee.amount)}
                                       </span>
@@ -825,8 +833,8 @@ const AdminLoans = () => {
                       {lateFeeType === "missed"
                         ? "Applied when borrower misses a scheduled repayment"
                         : `15% of outstanding amount: ${formatCurrency(
-                            (selectedLoanForFee?.outstanding || 0) * 0.15
-                          )}`}
+                          (selectedLoanForFee?.outstanding || 0) * 0.15
+                        )}`}
                     </p>
                   </div>
                 </div>
