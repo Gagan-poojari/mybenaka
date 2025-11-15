@@ -321,7 +321,7 @@ const ManagerLoans = () => {
                               </span>
                               <span className="flex items-center gap-1">
                                 <FileText className="w-3 h-3" />
-                                ID: {loan.id?.slice(-8)}
+                                Account No: {loan.borrower?.accountNumber}
                               </span>
                             </div>
                           </div>
