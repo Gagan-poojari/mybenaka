@@ -115,23 +115,36 @@ const AdminLoans = () => {
   };
 
   const handleApplyLateFee = async () => {
-    if (!selectedLoanForFee || !lateFeeType) return;
+    if (!selectedLoanForFee) return;
+
+    // Validation
+    if (!lateFeeAmount || lateFeeAmount <= 0) {
+      alert("Please enter a valid amount");
+      return;
+    }
+
+    if (!feeReason || feeReason.trim() === "") {
+      alert("Please provide a reason for the late fee");
+      return;
+    }
 
     setProcessingFee(true);
     try {
       const token = localStorage.getItem("token");
-      const endpoint = lateFeeType === "missed"
-        ? `${serverUrl}/api/loans/${selectedLoanForFee._id}/late-fee/missed-payment`
-        : `${serverUrl}/api/loans/${selectedLoanForFee._id}/late-fee/overdue-penalty`;
-
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ reason: feeReason }),
-      });
+      const res = await fetch(
+        `${serverUrl}/api/loans/${selectedLoanForFee._id}/late-fee`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: parseFloat(lateFeeAmount),
+            reason: feeReason.trim()
+          }),
+        }
+      );
 
       if (!res.ok) {
         const errorData = await res.json();
@@ -144,10 +157,10 @@ const AdminLoans = () => {
       // Refresh loans data
       await fetchLoansData();
 
-      // Close modal
+      // Close modal and reset
       setShowLateFeeModal(false);
       setSelectedLoanForFee(null);
-      setLateFeeType("");
+      setLateFeeAmount("");
       setFeeReason("");
     } catch (err) {
       alert(err.message);
@@ -155,6 +168,9 @@ const AdminLoans = () => {
       setProcessingFee(false);
     }
   };
+
+  // Add this state at the top with your other states
+  const [lateFeeAmount, setLateFeeAmount] = useState("");
 
   const handleWaiveLateFee = async (loanId, lateFeeId) => {
     const reason = prompt("Enter reason for waiving this late fee:");
@@ -189,9 +205,8 @@ const AdminLoans = () => {
     }
   };
 
-  const openLateFeeModal = (loan, type) => {
+  const openLateFeeModal = (loan) => {
     setSelectedLoanForFee(loan);
-    setLateFeeType(type);
     setShowLateFeeModal(true);
   };
 
@@ -442,8 +457,8 @@ const AdminLoans = () => {
                               </span>
                               <span
                                 className={`px-2 py-1 text-xs rounded-full font-medium ${loan.issuedByRole === "Admin"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "bg-purple-100 text-purple-700"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-purple-100 text-purple-700"
                                   }`}
                               >
                                 {loan.issuedByRole}
@@ -473,10 +488,12 @@ const AdminLoans = () => {
                             </Link>
                             {(loan.status === "active" || loan.status === "overdue") && (
                               <div className="relative group">
-                                <button className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded-full transition">
+                                <button
+                                  onClick={() => openLateFeeModal(loan)}
+                                  className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded-full transition">
                                   Apply Late Fee
                                 </button>
-                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden group-hover:block z-10">
+                                {/* <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden group-hover:block z-10">
                                   <button
                                     onClick={() => openLateFeeModal(loan, "missed")}
                                     className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
@@ -489,7 +506,7 @@ const AdminLoans = () => {
                                   >
                                     15% - Overdue Penalty
                                   </button>
-                                </div>
+                                </div> */}
                               </div>
                             )}
                           </div>
@@ -616,8 +633,8 @@ const AdminLoans = () => {
                               <span className="text-gray-600">Disbursed:</span>
                               <span
                                 className={`font-medium ${loan.disbursement?.isDisbursed
-                                    ? "text-green-600"
-                                    : "text-gray-600"
+                                  ? "text-green-600"
+                                  : "text-gray-600"
                                   }`}
                               >
                                 {loan.disbursement?.isDisbursed ? "Yes" : "No"}
@@ -684,8 +701,8 @@ const AdminLoans = () => {
                               <div
                                 key={fee._id}
                                 className={`p-3 rounded-lg border ${fee.isPaid
-                                    ? "bg-gray-50 border-gray-200"
-                                    : "bg-orange-50 border-orange-200"
+                                  ? "bg-gray-50 border-gray-200"
+                                  : "bg-orange-50 border-orange-200"
                                   }`}
                               >
                                 <div className="flex justify-between items-start">
@@ -788,7 +805,7 @@ const AdminLoans = () => {
       </div>
 
       {/* Late Fee Modal */}
-      {showLateFeeModal && (
+      {/* {showLateFeeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
@@ -860,6 +877,141 @@ const AdminLoans = () => {
                   setShowLateFeeModal(false);
                   setSelectedLoanForFee(null);
                   setLateFeeType("");
+                  setFeeReason("");
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={processingFee}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleApplyLateFee}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={processingFee}
+              >
+                {processingFee ? "Applying..." : "Apply Late Fee"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )} */}
+
+      {showLateFeeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">
+                Apply Late Fee
+              </h3>
+              <button
+                onClick={() => {
+                  setShowLateFeeModal(false);
+                  setSelectedLoanForFee(null);
+                  setLateFeeAmount("");
+                  setFeeReason("");
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                <p className="text-sm text-gray-600 mb-1">Borrower</p>
+                <p className="font-semibold text-gray-900">
+                  {selectedLoanForFee?.borrower?.name}
+                </p>
+                <p className="text-sm text-gray-600 mt-2">Phone</p>
+                <p className="font-semibold text-gray-700">
+                  {selectedLoanForFee?.borrower?.phone}
+                </p>
+                <p className="text-sm text-gray-600 mt-2">Outstanding Amount</p>
+                <p className="font-semibold text-red-600">
+                  {formatCurrency(selectedLoanForFee?.outstanding)}
+                </p>
+              </div>
+
+              <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg mb-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-orange-700">
+                    <p className="font-medium mb-1">Common Late Fee Amounts:</p>
+                    <p>• ₹500 for missed payment</p>
+                    <p>• 15% of outstanding for overdue penalty</p>
+                    <p>• Or enter any custom amount below</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Late Fee Amount <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    value={lateFeeAmount}
+                    onChange={(e) => setLateFeeAmount(e.target.value)}
+                    placeholder="Enter amount"
+                    min="0"
+                    step="0.01"
+                    className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+                {/* Quick amount buttons */}
+                <div className="flex gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setLateFeeAmount("500")}
+                    className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                  >
+                    ₹500
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLateFeeAmount(
+                      String(Math.round((selectedLoanForFee?.outstanding || 0) * 0.15))
+                    )}
+                    className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                  >
+                    15% (₹{Math.round((selectedLoanForFee?.outstanding || 0) * 0.15)})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLateFeeAmount("1000")}
+                    className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                  >
+                    ₹1,000
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={feeReason}
+                  onChange={(e) => setFeeReason(e.target.value)}
+                  placeholder="Enter reason for applying this late fee..."
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  rows="3"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowLateFeeModal(false);
+                  setSelectedLoanForFee(null);
+                  setLateFeeAmount("");
                   setFeeReason("");
                 }}
                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"

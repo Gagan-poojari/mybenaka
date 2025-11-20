@@ -1323,10 +1323,114 @@ export const applyOverduePenalty = async (req, res) => {
   }
 };
 
-/**
- * Auto-check and apply late fees for all loans
- * This should be called by a cron job daily
- */
+export const applyCustomLateFee = async (req, res) => {
+  try {
+    const { loanId } = req.params;
+    const { amount, reason } = req.body;
+
+    // Validation
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: "Please provide a valid amount" });
+    }
+
+    if (!reason || reason.trim() === "") {
+      return res.status(400).json({ message: "Please provide a reason for the late fee" });
+    }
+
+    const loan = await Loan.findById(loanId).populate("borrower", "name phone");
+
+    if (!loan) {
+      return res.status(404).json({ message: "Loan not found" });
+    }
+
+    if (loan.status === "closed" || loan.status === "written-off") {
+      return res.status(400).json({ 
+        message: "Cannot apply late fee to closed/written-off loan" 
+      });
+    }
+
+    // Check if user has access to this loan (uncomment if needed)
+    // if (req.user.role === "Manager" && loan.issuedBy.toString() !== req.user.id) {
+    //   return res.status(403).json({ message: "Access denied" });
+    // }
+
+    const today = new Date();
+
+    // Calculate days overdue if applicable
+    let daysOverdue = 0;
+    const dueDate = new Date(loan.dueDate);
+    if (today > dueDate) {
+      daysOverdue = Math.ceil((today - dueDate) / (1000 * 60 * 60 * 24));
+    }
+
+    // Check for overdue installments
+    const overdueSchedules = loan.repaymentSchedule?.filter(
+      schedule => schedule.status === "pending" && new Date(schedule.dueDate) < today
+    ) || [];
+
+    if (overdueSchedules.length > 0) {
+      const earliestOverdue = overdueSchedules.reduce((earliest, current) => 
+        new Date(current.dueDate) < new Date(earliest.dueDate) ? current : earliest
+      );
+      const scheduleDaysOverdue = Math.ceil(
+        (today - new Date(earliestOverdue.dueDate)) / (1000 * 60 * 60 * 24)
+      );
+      daysOverdue = Math.max(daysOverdue, scheduleDaysOverdue);
+
+      // Mark overdue schedules
+      overdueSchedules.forEach(schedule => {
+        schedule.status = "overdue";
+      });
+    }
+
+    // Add the custom late fee
+    loan.lateFees.push({
+      amount: parseFloat(amount),
+      appliedDate: today,
+      appliedBy: req.user.id,
+      appliedByRole: req.user.role,
+      reason: reason.trim(),
+      daysOverdue,
+      isPaid: false
+    });
+
+    // Update loan status if overdue
+    if (daysOverdue > 0 && loan.status === "active") {
+      loan.status = "overdue";
+    }
+
+    await loan.save();
+
+    // Log activity
+    await Log.create({
+      type: "Activity",
+      action: "APPLY_LATE_FEE",
+      details: `Applied ₹${amount} late fee to ${loan.borrower.name} (Loan ID: ${loanId}) - Reason: ${reason}${daysOverdue > 0 ? ` (${daysOverdue} days overdue)` : ''}`,
+      ownerType: req.user.role,
+      ownerId: req.user.id,
+      loan: loanId,
+      borrower: loan.borrower._id
+    });
+
+    const updatedLoan = await Loan.findById(loanId)
+      .populate("borrower", "name phone")
+      .populate("issuedBy", "name email");
+
+    res.status(200).json({
+      message: "Late fee applied successfully",
+      lateFeeAmount: parseFloat(amount),
+      daysOverdue,
+      loan: updatedLoan
+    });
+
+  } catch (error) {
+    console.error("Error applying late fee:", error);
+    res.status(500).json({
+      message: "Error applying late fee",
+      error: error.message
+    });
+  }
+};
 export const autoApplyLateFees = async (req, res) => {
   try {
     const today = new Date();
@@ -1471,6 +1575,11 @@ export const autoApplyLateFees = async (req, res) => {
     });
   }
 };
+
+/**
+ * Auto-check and apply late fees for all loans
+ * This should be called by a cron job daily
+ */
 
 export const waiveLateFee = async (req, res) => {
   try {

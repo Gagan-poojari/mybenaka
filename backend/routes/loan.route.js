@@ -25,6 +25,7 @@ import {
   applyOverduePenalty,
   autoApplyLateFees,
   waiveLateFee,
+  applyCustomLateFee,
 //   getLoanHistory,
 //   addLoanNote,
 //   applyLateFee,
@@ -65,8 +66,9 @@ loanRouter.get("/stats", getMyPortfolioStats);
 loanRouter.get("/overdue-loans", getMyOverdueLoans);
 
 // Late fee routes
-loanRouter.post("/loans/:loanId/late-fee/missed-payment", applyMissedPaymentLateFee);
-loanRouter.post("/loans/:loanId/late-fee/overdue-penalty", applyOverduePenalty);
+// loanRouter.post("/loans/:loanId/late-fee/missed-payment", applyMissedPaymentLateFee);
+// loanRouter.post("/loans/:loanId/late-fee/overdue-penalty", applyOverduePenalty);
+loanRouter.post("/loans/:loanId/late-fee", applyCustomLateFee);
 loanRouter.post("/late-fees/auto-apply", isAdmin, autoApplyLateFees);
 loanRouter.post("/loans/:loanId/late-fee/:lateFeeId/waive", waiveLateFee);
 
