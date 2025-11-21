@@ -20,12 +20,36 @@ dotenv.config();
 const app = express();
 
 // Middleware
+// app.use(cors({
+//   origin: "https://nammabenaka.in",
+//   // origin: "http://localhost:3001" || "http://localhost:3000",
+//   // origin: "https://mybenaka-frontend.onrender.com",
+//   // origin: "https://mybenaka.vercel.app/",
+//   credentials: true
+// }));
+
+const allowedOrigins = [
+  "https://nammabenaka.in",
+  "https://www.nammabenaka.in",
+  "https://mybenaka.vercel.app",
+  "https://mybenaka-frontend.onrender.com",
+  "http://localhost:3000",
+  "http://localhost:3001",
+];
+
 app.use(cors({
-  origin: "https://nammabenaka.in",
-  // origin: "http://localhost:3001" || "http://localhost:3000",
-  // origin: "https://mybenaka-frontend.onrender.com",
-  // origin: "https://mybenaka.vercel.app/",
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow server-to-server or tools without an origin
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
 }));
 
 app.use(express.json({ limit: "20mb" }));
