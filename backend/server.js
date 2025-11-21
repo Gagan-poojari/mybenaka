@@ -21,8 +21,9 @@ const app = express();
 
 // Middleware
 app.use(cors({
+  origin: "https://nammabenaka.in",
   // origin: "http://localhost:3001" || "http://localhost:3000",
-  origin: "https://mybenaka-frontend.onrender.com",
+  // origin: "https://mybenaka-frontend.onrender.com",
   // origin: "https://mybenaka.vercel.app/",
   credentials: true
 }));
